@@ -158,7 +158,7 @@ dependencies:
   - wcwidth=0.2.13
   - webob=1.8.7
   - wheel=0.43.0
-  - win_inet_pton=1.1.0
+
   - xerces-c=3.2.4
   - xyzservices=2022.9.0
   - xz=5.4.6
