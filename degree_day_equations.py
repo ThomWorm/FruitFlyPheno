@@ -32,6 +32,7 @@ def single_sine_horizontal_cutoff(Tmax, Tmin, LTT, UTT):
         )
     elif Tmin >= LTT and Tmax > UTT and Tmin < UTT:
         W = (Tmax - Tmin) / 2
+        X1 = math.asin((LTT - ((Tmax + Tmin) / 2)) / W)
         X2 = math.asin((UTT - ((Tmax + Tmin) / 2)) / W)
         return (1 / math.pi) * (W * (X2 - X1) + ((UTT - LTT) * ((math.pi / 2) - X2)))
     elif Tmin < LTT and Tmax > UTT:
