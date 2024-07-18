@@ -1,88 +1,28 @@
 import math
-
-
-def single_sine_no_cutoff(Tmax, Tmin, LTT):
-    if Tmax <= LTT:
-        return 0
-    elif Tmin >= LTT:
-        return ((Tmax + Tmin) / 2) - LTT
-    elif Tmin < LTT and Tmax > LTT:
-        W = (Tmax - Tmin) / 2
-        X1 = math.asin((LTT - ((Tmax + Tmin) / 2)) / W)
-        return (1 / math.pi) * (
-            W * math.cos(X1) - ((LTT - ((Tmax + Tmin) / 2)) * ((math.pi / 2) - X1))
-        )
-
-
-# Example for other cutoffs would follow a similar structure as above with additional conditions
-
-
-def single_sine_horizontal_cutoff(Tmax, Tmin, LTT, UTT):
-    if Tmin >= UTT:
+def single_sine_horizontal_cutoff(T_min, T_max, LTT, UTT):
+    alpha = (T_max - T_min) / 2
+    theta = (T_max + T_min) / 2
+    
+    if T_min >= UTT: #case 1
         return UTT - LTT
-    elif Tmax <= LTT:
+    elif T_max <= LTT: #case 2
         return 0
-    elif Tmin >= LTT and Tmax <= UTT:
-        return ((Tmax + Tmin) / 2) - LTT
-    elif Tmin < LTT and Tmax > LTT and Tmax <= UTT:
-        W = (Tmax - Tmin) / 2
-        X1 = math.asin((LTT - ((Tmax + Tmin) / 2)) / W)
-        return (1 / math.pi) * (
-            W * math.cos(X1) - ((LTT - ((Tmax + Tmin) / 2)) * ((math.pi / 2) - X1))
-        )
-    elif Tmin >= LTT and Tmax > UTT and Tmin < UTT:
-        W = (Tmax - Tmin) / 2
-        X1 = math.asin((LTT - ((Tmax + Tmin) / 2)) / W)
-        X2 = math.asin((UTT - ((Tmax + Tmin) / 2)) / W)
-        return (1 / math.pi) * (W * (X2 - X1) + ((UTT - LTT) * ((math.pi / 2) - X2)))
-    elif Tmin < LTT and Tmax > UTT:
-        W = (Tmax - Tmin) / 2
-        X1 = math.asin((LTT - ((Tmax + Tmin) / 2)) / W)
-        X2 = math.asin((UTT - ((Tmax + Tmin) / 2)) / W)
-        return (1 / math.pi) * (W * (X2 - X1) + ((UTT - LTT) * ((math.pi / 2) - X2)))
+    elif T_min >= LTT and T_max <= UTT: #case 3
+       
+        return theta - LTT
+    elif T_min < LTT and T_max > LTT and T_max <= UTT: #case 4
+        
+        theta_1 = math.asin((LTT - theta)  * (1 / alpha))
+        
+        return (1 / math.pi) * ((theta - LTT) * ((math.pi / 2) - theta_1) + (alpha * math.cos(theta_1)))
+    
 
+    elif T_min >= LTT and T_max > UTT and T_min < UTT: #case 5
+        theta_2 = math.asin((UTT - theta) *  (1/alpha))
+        return (1 / math.pi) * ((theta - LTT) * (math.pi / 2 + theta_2) + (UTT-LTT)*(math.pi / 2 - theta_2) - alpha * math.cos(theta_2))
+    
+    elif T_min < LTT and T_max > UTT: #case 6
+        theta_1 = math.asin((LTT - theta) * (1/alpha))
+        theta_2 = math.asin((UTT - theta) *  (1/alpha))
 
-def single_sine_vertical_cutoff(Tmax, Tmin, LTT, UTT):
-    if Tmin > UTT or Tmax < LTT:
-        return 0
-    elif Tmin > LTT and Tmax < UTT:
-        return ((Tmax + Tmin) / 2) - LTT
-    elif Tmin < LTT and Tmax > LTT and Tmax <= UTT:
-        W = (Tmax - Tmin) / 2
-        X1 = math.asin((LTT - ((Tmax + Tmin) / 2)) / W)
-        return (1 / math.pi) * (
-            W * math.cos(X1) - ((LTT - ((Tmax + Tmin) / 2)) * ((math.pi / 2) - X1))
-        )
-    elif Tmin > LTT and Tmax > UTT:
-        W = (Tmax - Tmin) / 2
-        X2 = math.asin((UTT - ((Tmax + Tmin) / 2)) / W)
-        return (1 / math.pi) * (W * (X2 - X1) + ((UTT - LTT) * ((math.pi / 2) - X2)))
-    elif Tmin < LTT and Tmax > UTT:
-        W = (Tmax - Tmin) / 2
-        X1 = math.asin((LTT - ((Tmax + Tmin) / 2)) / W)
-        X2 = math.asin((UTT - ((Tmax + Tmin) / 2)) / W)
-        return (1 / math.pi) * (W * (X2 - X1) + ((UTT - LTT) * ((math.pi / 2) - X2)))
-
-
-def single_sine_intermediate_cutoff(Tmax, Tmin, LTT, UTT):
-    if Tmin > UTT:
-        return ((UTT + Tmin) / 2) - LTT
-    elif Tmax < LTT:
-        return 0
-    elif Tmin > LTT and Tmax < UTT:
-        return ((Tmax + Tmin) / 2) - LTT
-    elif Tmin < LTT and Tmax > LTT and Tmax <= UTT:
-        W = (Tmax - Tmin) / 2
-        X1 = math.asin((LTT - ((Tmax + Tmin) / 2)) / W)
-        return (1 / math.pi) * (
-            W * math.cos(X1) - ((LTT - ((Tmax + Tmin) / 2)) * ((math.pi / 2) - X1))
-        )
-    elif Tmin > LTT and Tmax > UTT:
-        W = (Tmax - Tmin) / 2
-        X2 = math.asin((UTT - ((Tmax + Tmin) / 2)) / W)
-        return (1 / math.pi) * (W * (X2 - X1) + ((UTT - LTT) * ((math.pi / 2) - X2)))
-    elif Tmin < LTT and Tmax > UTT:
-        W = (Tmax - Tmin) / 2
-        X1 = math.asin((LTT - ((Tmax + Tmin) / 2)) / W)
-        X2 = math.asin((UTT - ((Tmax + Tmin) / 2)) / W)
-        return (1 / math.pi) * (W * (X2 - X1) + ((UTT - LTT) * ((math.pi / 2) - X2)))
+        return (1 / math.pi) * ((theta - LTT) * (theta_2 - theta_1) + alpha * (math.cos(theta_1) - math.cos(theta_2)) + (UTT - LTT) * ((math.pi /2 ) - theta_2))
