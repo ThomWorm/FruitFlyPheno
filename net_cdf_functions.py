@@ -161,6 +161,13 @@ def clip_netcdf(filepath, output_filepath, lat_center, lon_center, buffer_degree
     dataset.close()
 
 
+def load_netcdf(year, day_of_year, base_dir):
+    date_str = date(year, 1, 1) + timedelta(days=day_of_year - 1)
+    # print(f"Loading data for {date_str}")
+    file_path = os.path.join(base_dir, "PRISM", str(year), f"PRISM_combo_{date_str}.nc")
+    return file_path
+
+
 """
 # Example usage
 #filepath = "data/P"
