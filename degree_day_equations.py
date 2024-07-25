@@ -1,7 +1,7 @@
 import math
 
 
-def single_sine_horizontal_cutoff(T_min, T_max, LTT, UTT):
+def single_sine_horizontal_cutoff(T_min, T_max, LTT=12, UTT=36):
     alpha = (T_max - T_min) / 2
     theta = (T_max + T_min) / 2
 
