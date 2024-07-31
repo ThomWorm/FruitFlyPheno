@@ -1,4 +1,5 @@
 import math
+import numpy as np
 
 
 def single_sine_horizontal_cutoff(T_min, T_max, LTT=12, UTT=36):
@@ -37,3 +38,6 @@ def single_sine_horizontal_cutoff(T_min, T_max, LTT=12, UTT=36):
             + alpha * (math.cos(theta_1) - math.cos(theta_2))
             + (UTT - LTT) * ((math.pi / 2) - theta_2)
         )
+
+
+vsingle_sine_horizontal_cutoff = np.vectorize(single_sine_horizontal_cutoff)

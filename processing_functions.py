@@ -1,6 +1,8 @@
 import numpy as np
 import netCDF4 as nc
+import xarray as xr
 from concurrent.futures import ProcessPoolExecutor
+from degree_day_equations import *
 
 
 def compute_mean(sub_array):
@@ -79,14 +81,68 @@ def process_netcdf_day_temp_means(
     return means
 
 
-# Example usage
-output_array = process_netcdf_day(
-    "data/test/PRISM/",
-    2000,
-    2020,
-    "0101",
-    "data/test/derived",
-    "PRISM_mean_2000-2020",
-    variable_name="tmax",
-    num_cores=6,
-)
+def subset_dataset_by_coords(dataset, lat, lon, window_size=None):
+    # if window_size is not None:
+
+    if window_size is not None:
+        # Define the window boundaries
+        lat_min = lat - window_size
+        lat_max = lat + window_size
+        lon_min = lon - window_size
+        lon_max = lon + window_size
+
+        # Create boolean masks for the coordinate ranges
+        mask_lat = (dataset.latitude >= lat_min) & (dataset.latitude <= lat_max)
+        mask_lon = (dataset.longitude >= lon_min) & (dataset.longitude <= lon_max)
+
+        # Create a boolean mask that combines latitude and longitude masks
+        # ombined_mask = mask_lat[:, np.newaxis] & mask_lon[np.newaxis, :]
+
+        # Apply the mask using .where() and drop the data points outside the window
+        subset = dataset.where(mask_lat & mask_lon, drop=True).fillna(np.nan)
+
+        return subset
+    else:
+        return dataset.sel(latitude=lat, longitude=lon, method="nearest")
+
+
+def da_calculate_degree_days(LTT, UTT, data):
+    # returns a data array with the degree days
+    if len(data.dims) == 1:
+        degree_days_vec = xr.apply_ufunc(
+            vsingle_sine_horizontal_cutoff,
+            data["tmin"],
+            data["tmax"],
+            kwargs={"LTT": LTT, "UTT": UTT},
+            dask="allowed",
+        )
+        degree_days_vec = xr.DataArray(
+            degree_days_vec, coords=data.coords, dims=data.dims, name="degree_days"
+        )
+
+        return degree_days_vec
+
+    elif len(data.dims) == 3:
+        degree_days_vec = xr.apply_ufunc(
+            vsingle_sine_horizontal_cutoff,
+            data["tmin"].values,
+            data["tmax"].values,
+            kwargs={"LTT": LTT, "UTT": UTT},
+            # vectorize=True,  # Ensure function is applied element-wise
+            input_core_dims=[
+                ["t", "longitude", "latitude"],
+                ["t", "longitude", "latitude"],
+            ],  # Adjust to your dimensions
+            output_core_dims=[
+                ["t", "longitude", "latitude"]
+            ],  # Adjust to your dimensions
+            dask="allowed",  # Use Dask if your dataset is large
+        )
+        degree_days_vec = xr.DataArray(
+            degree_days_vec,
+            coords=data.coords,
+            dims=data.dims,
+            name="degree_days",
+        )
+
+        return degree_days_vec
