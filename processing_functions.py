@@ -109,6 +109,7 @@ def subset_dataset_by_coords(dataset, lat, lon, window_size=None):
 def da_calculate_degree_days(LTT, UTT, data):
     # returns a data array with the degree days
     if len(data.dims) == 1:
+        print("calculating degree days for 1D data array")
         degree_days_vec = xr.apply_ufunc(
             vsingle_sine_horizontal_cutoff,
             data["tmin"],
@@ -123,6 +124,7 @@ def da_calculate_degree_days(LTT, UTT, data):
         return degree_days_vec
 
     elif len(data.dims) == 3:
+        print("calculating degree days for 3D data array")
         degree_days_vec = xr.apply_ufunc(
             vsingle_sine_horizontal_cutoff,
             data["tmin"].values,
