@@ -149,3 +149,53 @@ def da_calculate_degree_days(LTT, UTT, data):
         )
 
         return degree_days_vec
+
+
+def day_cumsum_reaches_threshold(
+    degree_days, start_index, start_time_values, threshold
+):
+    cumsum = np.cumsum(degree_days[start_index:])
+    threshold_reached = np.where(cumsum >= threshold)[0]
+    if len(threshold_reached) == 0:
+        warnings.warn("Development error: Threshold not reached")
+        return 0
+    first_reached_index = threshold_reached[0]
+    result_date = start_time_values[start_index + first_reached_index]
+    return result_date
+
+
+def create_start_date_array(degree_days, date):
+
+    if len(degree_days.dims) == 3:
+        latitude = degree_days["latitude"]
+        longitude = degree_days["longitude"]
+        lat_shape = latitude.shape[0]
+        lon_shape = longitude.shape[0]
+        start_dates = xr.DataArray(
+            np.full((lat_shape, lon_shape), np.datetime64(date, "ns")),
+            coords=[latitude, longitude],
+            dims=["latitude", "longitude"],
+        )
+
+    elif len(degree_days.dims) == 1:
+        latitude = degree_days.coords.get("latitude", np.array([0]))
+        longitude = degree_days.coords.get("longitude", np.array([0]))
+        start_dates = xr.DataArray(
+            np.datetime64(date, "ns"),  # Single start date for 1D input
+            coords={"latitude": latitude, "longitude": longitude},
+            dims=[],
+        )
+    return start_dates
+
+
+def create_start_index_array(start_dates, time_values):
+    try:
+        start_indices = np.array(
+            [np.where(time_values == d)[0][0] for d in start_dates.values.flatten()]
+        ).reshape(start_dates.shape)
+        return start_indices
+    except IndexError:
+        print(
+            "Error: Start date not found in time dimension when creating start index array"
+        )
+        return None
