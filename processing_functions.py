@@ -103,7 +103,8 @@ def subset_dataset_by_coords(dataset, lat, lon, window_size=None):
 
         return subset
     else:
-        return dataset.sel(latitude=lat, longitude=lon, method="nearest")
+        unchunked_dataset = dataset.chunk(None)
+        return unchunked_dataset.sel(latitude=lat, longitude=lon, method="nearest")
 
 
 def da_calculate_degree_days(LTT, UTT, data):
