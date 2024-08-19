@@ -19,7 +19,6 @@ def subset_dataset_by_coords(dataset, lat, lon, window_size=None):
         mask_lon = (dataset.longitude >= lon_min) & (dataset.longitude <= lon_max)
 
         # Apply the mask using .where() and drop the data points outside the window
-        print("masking 3d")
         subset = dataset.where(mask_lat & mask_lon, drop=True)
         nan_mask = subset.isnull().any(dim="t")
         # combine tmin and tmax into one mask
@@ -32,11 +31,9 @@ def subset_dataset_by_coords(dataset, lat, lon, window_size=None):
         # .any(dim="t")
         return subset, nan_mask
     else:
-        print("masking 1d")
         subset = dataset.sel(latitude=lat, longitude=lon, method="nearest")
         # Check if the subset contains only NaN values
         # print any nan values
-        print(subset.isnull(keep_attrs=True))
 
         # Create a mask for NaN values in the subset
         nan_mask = subset.isnull().any(dim="t")
@@ -47,7 +44,7 @@ def subset_dataset_by_coords(dataset, lat, lon, window_size=None):
 def da_calculate_degree_days(LTT, UTT, data):
     # returns a data array with the degree days
     if len(data.dims) == 1:
-        print("calculating degree days for 1D data array")
+        # print("calculating degree days for 1D data array")
         degree_days_vec = xr.apply_ufunc(
             vsingle_sine_horizontal_cutoff,
             data["tmin"],
@@ -62,7 +59,7 @@ def da_calculate_degree_days(LTT, UTT, data):
         return degree_days_vec
 
     elif len(data.dims) == 3:
-        print("calculating degree days for 3D data array")
+        # print("calculating degree days for 3D data array")
         degree_days_vec = xr.apply_ufunc(
             vsingle_sine_horizontal_cutoff,
             data["tmin"].values,
@@ -143,7 +140,6 @@ def create_start_index_array(start_dates, time_values):
         print(
             "Error: Start date not found in time dimension when creating start index array"
         )
-        print(f"start_dates: {start_dates}")
 
         return None
 
@@ -179,12 +175,10 @@ def day_cumsum_reaches_threshold(
         return 0
     threshold_reached = np.where(cumsum >= threshold)[0]
     if len(threshold_reached) == 0:
-        print(degree_days)
         warnings.warn("Development error: Threshold not reached")
         return 0
     # elisef start_index is None
     elif start_index is None:
-        print(degree_days)
         warnings.warn("Development error: Start index is None")
         return 0
 
