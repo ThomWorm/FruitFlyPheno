@@ -222,4 +222,6 @@ def compute_dd_threshold_reached_days(degree_days, start_dates, threshold):
         output_dtypes=[np.datetime64],
     )
 
+    result = result.rename("gen_comp_date")  # Rename the output data
+
     return result

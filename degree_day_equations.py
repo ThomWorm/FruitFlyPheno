@@ -4,7 +4,6 @@ import numpy as np
 
 def single_sine_horizontal_cutoff(T_min, T_max, LTT=12, UTT=36):
     if np.isnan(T_min) or np.isnan(T_max):
-        print("nan")
         return np.nan  # Return NaN if either input is NaN
     if T_min == -9999 or T_max == -9999:
         return np.nan
@@ -14,7 +13,6 @@ def single_sine_horizontal_cutoff(T_min, T_max, LTT=12, UTT=36):
     if T_min >= UTT:  # case 1
         return UTT - LTT
     elif T_max <= LTT:  # case 2
-        print("case 2")
         return float(0)
     elif T_min >= LTT and T_max <= UTT:  # case 3
 
