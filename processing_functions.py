@@ -199,7 +199,7 @@ def convert_to_datetime64_ns(value):
 si = []
 
 
-def compute_dd_threshold_reached_days(degree_days, start_dates, threshold):
+def compute_dd_threshold_reached_dates(degree_days, start_dates, threshold):
     start_indices = create_start_index_array(start_dates, degree_days.t.values)
     si.append(start_indices)
     result_raw = xr.apply_ufunc(

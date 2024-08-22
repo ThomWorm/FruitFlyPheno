@@ -62,10 +62,3 @@ def plot_threshold_reached_dates(data_array, export_html=False, output_file="map
         print(f"Map saved to {output_file}")
     else:
         hv.output(plot)
-
-
-plot_threshold_reached_dates(
-    la_threshold_reached_days_2,
-    export_html=True,
-    output_file="la_threshold_reached_days_2.html",
-)
