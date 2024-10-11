@@ -82,8 +82,8 @@ def check_and_download_missing_files(model_start_date, base_save_dir):
         date_str = current_date.strftime("%Y%m%d")
         save_dir = os.path.join(base_save_dir, "PRISM", str(year))
         file_path = os.path.join(save_dir, f"PRISM_combo_{date_str}.nc")
-
         if not os.path.exists(file_path):
+            print(f"Missing file for {file_path}")
             missing_files.append((year, current_date))
 
         current_date += timedelta(days=1)
@@ -91,22 +91,24 @@ def check_and_download_missing_files(model_start_date, base_save_dir):
     print(f"Total missing files to download: {len(missing_files)}")
 
     for year, file_date in missing_files:
+        print(f"Downloading data for {file_date} {year}")
         url, dataaset = fetch_data_for_day(year, file_date)
 
         # Use xarray to save the data to a .nc file
 
         # convert date to string and remove dashes
-        date_str = date.strftime("%Y%m%d")
-        date_str = date_str.replace("-", "")
+
+        date_str_sv = file_date.strftime("%Y%m%d")
+        date_str_sv = date_str_sv.replace("-", "")
 
         ds = xr.open_dataset(url)
 
         # date_str = current_date.strftime("%Y%m%d")
-        save_path = os.path.join(save_dir, f"PRISM_combo_{date_str}.nc")
+        save_path = os.path.join(base_save_dir, "PRISM", str(year), f"PRISM_combo_{date_str_sv}.nc")
 
         ds.to_netcdf(save_path)
 
-        print(f"Saved data for {date_str} to {save_path}")
+        print(f"Saved data for {date_str_sv} to {save_path}")
 
 
 def fetch_and_save_data(year, start_day_of_year, end_day_of_year, base_save_dir):
