@@ -239,7 +239,7 @@ buffer_degrees = 1  # Buffer in degrees
 
 clip_netcdf(filepath, output_filepath, lat_center, lon_center, buffer_degrees)
 """
-
+'''
 def read_netcdfs(files, coords, LTT, UTT):
     def process_one_path(path):
         # Use a context manager to ensure the file gets closed after use
@@ -282,8 +282,8 @@ def read_netcdfs(files, coords, LTT, UTT):
     # Concatenate all datasets along the specified dimension
     combined = xr.concat(datasets, "t")
     return combined
-
 '''
+
 def read_netcdfs(files, points, LTT, UTT):
     def process_one_path(path):
         # Use a context manager to ensure the file gets closed after use
@@ -316,4 +316,3 @@ def read_netcdfs(files, points, LTT, UTT):
     combined = xr.concat(datasets, "t")
     return combined
 
-'''
