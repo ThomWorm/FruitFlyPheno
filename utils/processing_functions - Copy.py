@@ -8,7 +8,6 @@ from glob import glob
 from .net_cdf_functions import *
 
 
-
 def subset_dataset_by_coords(dataset, lat, lon, lat_min = None, lat_max = None, lon_min = None, lon_max = None, window_size=None):
     if lat_min is not None and lat_max is not None and lon_min is not None and lon_max is not None:
         # Create boolean masks for the coordinate ranges
@@ -26,7 +25,7 @@ def subset_dataset_by_coords(dataset, lat, lon, lat_min = None, lat_max = None, 
 
         # Create a 2D mask for NaN values in the subset
         # .any(dim="t")
-        return subset, nan_mask
+        return subset
     elif window_size is not None and lat is not None and lon is not None:
         # Define the window boundaries
         lat_min = lat - window_size
@@ -62,6 +61,7 @@ def subset_dataset_by_coords(dataset, lat, lon, lat_min = None, lat_max = None, 
         print("mask2")
         nan_mask = nan_mask.tmin | nan_mask.tmax
         return subset, nan_mask
+
 
 def da_calculate_degree_days(LTT, UTT, data):
     # returns a data array with the degree days
@@ -120,7 +120,7 @@ def day_cumsum_reaches_threshold(
 
     cumsum = np.cumsum(degree_days[start_index:])
     threshold_reached = np.where(cumsum >= threshold)[0]
-    if len(threshold_reached) == 0:
+    if len(threshold_reached) == 0
         warnings.warn("Development error: Threshold not reached")
         return 0
     first_reached_index = threshold_reached[0]
@@ -359,7 +359,6 @@ def plot_values(model_1_date, species_name, model_start_date, model_output):
 
 
 
-
 def testing_load_data(data_path, start_date, LTT, UTT, lat = None, lon = None, lat_min = None, lat_max = None, lon_min = None, lon_max = None, window = None):
     def _preprocess(ds, lat, lon, LTT, UTT):
         dd = ds.sel(latitude=lat, longitude=lon, method="nearest")
@@ -409,6 +408,7 @@ def testing_load_data(data_path, start_date, LTT, UTT, lat = None, lon = None, l
     
 
 def fflies_model_1(data, start, threshold):
+    #start is the index of the first day of the year
     #initialize variables
     cumsum = 0
     elapsed_days = 0
@@ -416,7 +416,7 @@ def fflies_model_1(data, start, threshold):
     for i in range(start, len(data)):
         #add the value of the current position to the cumsum
         cumsum += data[i]
-        #increment the elapsed days
+        #increment the elapsed daysI
         elapsed_days += 1
         #if the cumsum is greater than or equal to the threshold, return the number of elapsed days
         if cumsum >= threshold:
