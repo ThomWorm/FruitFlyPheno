@@ -12,6 +12,13 @@ import warnings
 from utils.net_cdf_functions import *
 from .degree_day_equations import single_sine_horizontal_cutoff
 
+import time
+import pandas as pd
+from datetime import datetime, timedelta
+import requests
+from io import BytesIO
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 
 def plot_netcdf(filepath, variable_name):
     """
@@ -71,7 +78,7 @@ def fetch_data_for_day(year, date):
     # base_url = "https://safaris-tds.cipm.info/thredds/dodsC/prismrh/{}/PRISM_rh_{}.nc"
 
     date_str = date.strftime("%Y%m%d")
-
+ 
     url = base_url.format(year, date_str)
    
 
@@ -316,3 +323,104 @@ def read_netcdfs(files, points, LTT, UTT):
     combined = xr.concat(datasets, "t")
     return combined
 
+
+def fetch_single_day_ncss(ncss_url):
+    """
+    Fetch data for a single day from a THREDDS server using NCSS.
+    
+    Parameters:
+    - ncss_url: str, the NCSS URL to fetch data from
+    
+    Returns:
+    - xarray.Dataset containing the requested data for the specified day
+    """
+    # Fetch the data using requests
+    response = requests.get(ncss_url)
+    response.raise_for_status()  # Raise an error for bad status codes
+    
+    # Load the dataset into xarray
+    ds = xr.open_dataset(BytesIO(response.content), engine='h5netcdf')
+    
+    return ds
+
+def fetch_ncss_data(base_url, start_date, n_days=None, bbox=None, variables=['tmin', 'tmax'], point = None):
+    """
+    Fetch data from a THREDDS server using NCSS and collect it into an xarray Dataset.
+    
+    Parameters:
+    - base_url: str, base URL of the THREDDS server
+    - start_date: str, start date in the format 'YYYY-MM-DD'
+    - n_days: int or None, number of days to fetch data for. If None, fetch all data to the present.
+    - bbox: tuple or None, bounding box in the format (lon_min, lon_max, lat_min, lat_max)
+    - variables: list or None, list of variables to fetch
+    
+    Returns:
+    - xarray.Dataset containing the requested data
+    """
+    # Convert start_date to datetime
+    start_date = datetime.strptime(start_date, '%Y-%m-%d')
+    
+    # Calculate end_date
+    if n_days is None:
+        end_date = datetime.now() - timedelta(days=2)
+    else:
+        end_date = start_date + timedelta(days=n_days)
+    
+    # Generate list of dates
+    dates = pd.date_range(start=start_date, end=end_date, freq='D')
+    
+    # Initialize an empty list to store NCSS URLs
+    ncss_urls = []
+    
+    # Loop through each date and construct the NCSS URL
+    for date in dates:
+        date_str = date.strftime('%Y-%m-%dT00:00:00Z')
+        year = date.strftime('%Y')
+        url = f"{base_url}/{year}/PRISM_combo_{date.strftime('%Y%m%d')}.nc"
+        
+        # Construct the NCSS URL
+        var_params = "&".join([f"var={var}" for var in variables])
+        if bbox:
+            ncss_url = (
+            f"{url}?{var_params}"
+            f"&north={bbox[3]}&west={bbox[0]}&east={bbox[1]}&south={bbox[2]}"
+            f"&horizStride=1&time_start={date_str}&time_end={date_str}&accept=netcdf4ext&addLatLon=true"
+            )
+        elif point:
+            ncss_url = (
+                f"{url}?{var_params}"
+                f"&north={point[1]}&west={point[0]}&east={point[0]}&south={point[1]}"
+                f"&horizStride=1&time_start={date_str}&time_end={date_str}&accept=netcdf4ext&addLatLon=true"
+            )
+        else:
+            raise ValueError("Either bbox or point must be provided.")
+            # Append the NCSS URL to the list
+
+        ncss_urls.append(ncss_url)
+    
+    # Initialize an empty list to store datasets
+    datasets = [None] * len(ncss_urls)
+    
+    # Use ThreadPoolExecutor to fetch data in parallel
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        future_to_index = {executor.submit(fetch_single_day_ncss, url): i for i, url in enumerate(ncss_urls)}
+        for future in as_completed(future_to_index):
+            index = future_to_index[future]
+            try:
+                ds = future.result()
+                datasets[index] = ds
+            except Exception as e:
+
+                try:
+                    #wait 5 seconds
+                    time.sleep(3)
+                    ds = future.result()
+                    datasets.append(ds)
+                except:
+                   print(e)
+                   print(f"Error fetching data for URL {ncss_urls[index]}: {e}")
+    
+    # Combine all datasets into a single xarray Dataset
+    combined_ds = xr.concat(datasets, dim='t', join = 'override')
+    
+    return combined_ds
