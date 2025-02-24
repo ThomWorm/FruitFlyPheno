@@ -1,3 +1,6 @@
+# Data and derivatives
+
+*.csv
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
