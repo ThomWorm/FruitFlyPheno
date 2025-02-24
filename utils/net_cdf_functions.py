@@ -343,7 +343,7 @@ def fetch_single_day_ncss(ncss_url):
     
     return ds
 
-def fetch_ncss_data(base_url, start_date, n_days=None, bbox=None, variables=['tmin', 'tmax'], point = None):
+def fetch_ncss_data( start_date, n_days=None, bbox=None, variables=['tmin', 'tmax'], point = None, base_url = "https://thredds.climate.ncsu.edu/thredds/ncss/grid/prism/daily/combo",):
     """
     Fetch data from a THREDDS server using NCSS and collect it into an xarray Dataset.
     

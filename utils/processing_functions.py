@@ -429,3 +429,47 @@ def fflies_model_1(data, start, threshold):
             return elapsed_days
     return elapsed_days
 # Loop through each fly species
+
+def fflies_model_1(data, start, threshold):
+    # Ensure data is an xarray DataArray
+    if isinstance(data, np.ndarray):
+        data = xr.DataArray(data)
+    
+    # Initialize cumulative sum and elapsed days
+    cumsum = 0
+    elapsed_days = 0
+    
+    # Iterate through the data array starting from the given start position
+    for i in range(start, len(data)):
+        # Add the value of the current position to the cumsum
+        cumsum += data[i]
+        # Increment the elapsed days
+        elapsed_days += 1
+        # If the cumsum is greater than or equal to the threshold, return the number of elapsed days
+        if cumsum >= threshold:
+            return elapsed_days
+    
+    # If the end of the array is reached, start over from the beginning and keep counting
+    for i in range(0, start):
+        cumsum += data[i]
+        elapsed_days += 1
+        if cumsum >= threshold:
+            return elapsed_days
+    
+    # If the threshold is not reached, return the total number of days
+    return elapsed_days
+
+def apply_fflies_model_run(data, date, dd_threshold=754):
+    # Apply the wrapper function over the x and y dimensions
+    result = xr.apply_ufunc(
+        fflies_model_1,
+        data,
+        date,
+        dd_threshold,
+        input_core_dims=[['day_of_year'], [], []],
+        output_core_dims=[[]],
+        vectorize=True,
+        dask='parallelized',
+        output_dtypes=[int]
+    )
+    return result
