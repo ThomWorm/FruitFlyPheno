@@ -358,4 +358,3 @@ def prediction_model_run(
             fly_params,
         )
     return fflies_output_class(value=predicted_f3_days, array=None, figure=None)
-    print("Predicted F3 days for ", iteration_coords, ":", predicted_f3_days)

@@ -23,6 +23,12 @@ class fflies_output_class(NamedTuple):
         else:
             print("No figure to plot.")
 
+    def safeTiff(self, filename):
+        if self.array is not None:
+            self.array.rio.to_raster(filename)
+        else:
+            print("No array to save as TIFF.")
+
     # def serve
 
 
