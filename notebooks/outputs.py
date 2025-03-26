@@ -1,21 +1,29 @@
 import datetime
-from datetime import timedelta
-import numpy as np
-from shapely.geometry import Point
-import geopandas as gpd
 from matplotlib.patches import Circle
 import matplotlib.pyplot as plt
-import cartopy
 import cartopy.crs as ccrs
-import cartopy.feature as cfeature
 import cartopy.io.img_tiles as cimgt
-import pandas as pd
-import xarray as xr
+from typing import NamedTuple, Optional
+import matplotlib.figure as mpl_fig
+from dataclasses import dataclass
+from xarray import DataArray
 
-import datetime
 
 # from notebooks.inputs import get_recent_weather_data
 # from notebooks.simulations import calculate_predicted_f3_days_linear
+@dataclass
+class fflies_output_class(NamedTuple):
+    array: Optional[DataArray] = None  # Can be a DataFrame or None
+    figure: Optional[mpl_fig.Figure] = None  # Can be a Figure or None
+    value: Optional[int] = None  # Can be an int or None
+
+    def plot(self):
+        if self.figure is not None:
+            plt.show(self.figure)
+        else:
+            print("No figure to plot.")
+
+    # def serve
 
 
 def report_stats(model_output, coordinates):
@@ -27,7 +35,14 @@ def report_stats(model_output, coordinates):
     print(int(completion_at_coords), " days to F3 completion at ", coordinates)
 
 
-def plot_xr_with_point_and_circle(data, point_coords, circle_radius_km=15, alpha=0.8):
+def plot_xr_with_point_and_circle(
+    data,
+    point_coords,
+    circle_radius_km=15,
+    alpha=0.8,
+    generate_webpage=False,
+    generate_tiff=False,
+):
     """
     Plots an xarray DataArray on a map with a point and a circle overlay.
     Parameters:
@@ -40,6 +55,10 @@ def plot_xr_with_point_and_circle(data, point_coords, circle_radius_km=15, alpha
         The radius of the circle to be drawn around the point, in kilometers. Default is 15 km.
     alpha : float, optional
         The transparency level of the data overlay. Default is 0.8.
+    generate_webpage : bool, optional
+        If True, generates a webpage with the plot as a png. Default is False.
+    generate_tiff : bool, optional
+        If True, generates a tiff file of the plot for download. Default is False.
     Returns:
     --------
     None
@@ -100,4 +119,5 @@ def plot_xr_with_point_and_circle(data, point_coords, circle_radius_km=15, alpha
     ax.set_title("Days to F3 Completion beginning on " + date.strftime("%Y-%m-%d"))
 
     # Show the plot
+
     plt.show()

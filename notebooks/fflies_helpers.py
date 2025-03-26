@@ -1,21 +1,15 @@
 import os
-from pydap.client import open_url
 import xarray as xr
 import datetime
-from datetime import timedelta, date
-import netCDF4 as nc
-from netCDF4 import Dataset
-import os
+from datetime import timedelta
 import sys
 import json
-import pickle
 
 sys.path.append(os.path.abspath(".."))
 from utils.degree_day_equations import *
 from utils.net_cdf_functions import *
 from utils.processing_functions import *
 
-import gc
 
 # from utils.visualization_functions import *
 
@@ -25,19 +19,12 @@ import pandas as pd
 import numpy as np
 
 from custom_errors import *
-from dask import delayed
-import time
 
 
-import xarray as xr
 import matplotlib.pyplot as plt
-from shapely.geometry import Point
-import geopandas as gpd
 from matplotlib.patches import Circle
 import cartopy.crs as ccrs
-import cartopy.feature as cfeature
 import cartopy.io.img_tiles as cimgt
-import datetime
 
 
 def validate_inputs(start_dates, coordinates, historical_data_buffer):
@@ -86,7 +73,6 @@ def validate_inputs(start_dates, coordinates, historical_data_buffer):
             raise ValueError("Start date is too early")
 
         elif end_date > pd.Timestamp.now() - pd.Timedelta(days=2):
-
             all_historical_data = False
             return all_historical_data
 
@@ -130,7 +116,6 @@ def check_data_at_point(data, coordinates):
     """
 
     for coord in coordinates:
-
         sample = data.sel(
             latitude=coord[0], longitude=coord[1], method="nearest"
         ).values

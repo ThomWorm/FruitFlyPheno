@@ -15,10 +15,8 @@ def single_sine_horizontal_cutoff(T_min, T_max, LTT, UTT):
     elif T_max <= LTT:  # case 2
         return float(0)
     elif T_min >= LTT and T_max <= UTT:  # case 3
-
         return theta - LTT
     elif T_min < LTT and T_max > LTT and T_max <= UTT:  # case 4
-
         theta_1 = math.asin((LTT - theta) * (1 / alpha))
 
         return (1 / math.pi) * (

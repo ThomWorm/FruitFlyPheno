@@ -1,28 +1,17 @@
 import os
-import datetime
-from datetime import timedelta, date
-import os
-import sys
+from datetime import timedelta
 import pickle
 import gc
 import pandas as pd
 import numpy as np
-from dask import delayed
 import time
 import xarray as xr
-import matplotlib.pyplot as plt
-from shapely.geometry import Point
-import geopandas as gpd
-from matplotlib.patches import Circle
-import cartopy.crs as ccrs
-import cartopy.feature as cfeature
-import cartopy.io.img_tiles as cimgt
 
 # -------------------
 from custom_errors import *
 from inputs import *
-from outputs import *
 from degree_day_equations import *
+from outputs import fflies_output_class
 
 
 def da_calculate_degree_days(LTT, UTT, data):
@@ -258,7 +247,6 @@ def all_historical_model_run(
     try:
         # if we receive multiple points, we will just output the completion dates
         if len(coordinates) == 1 and context_map == True:
-
             time_index = np.argwhere(
                 DD_data.t.values == np.datetime64(start_dates[0])
             ).flatten()[0]
@@ -267,7 +255,8 @@ def all_historical_model_run(
                 DD_data, time_index, fly_params["dd_threshold"]
             )
             report_stats(model_output, coordinates)
-            return plot_xr_with_point_and_circle(model_output, coordinates[0])
+            return fflies_output_class(array=model_output)
+
         else:
             for i, coord in enumerate(coordinates):
                 time_index = np.argwhere(
@@ -293,8 +282,7 @@ def all_historical_model_run(
                     f"apply_fflies_model_run_distributed execution time: {end_time - start_time} seconds"
                 )
 
-                report_stats(model_output, coord)
-            return None
+                return fflies_output_class(array=model_output)
 
     except HistoricalDataBufferError:
         if retry_count < 2:
@@ -332,7 +320,6 @@ def prediction_model_run(
     produce_plot=False,
     prediction_years=5,
 ):
-
     ######
     # Model Setup
     ######
@@ -359,7 +346,6 @@ def prediction_model_run(
 
     ##Model Run
     for i, date in enumerate(start_dates):
-
         date_iteration_first_year = date - timedelta(days=prediction_years * 365)
         iteration_coords = coordinates[i]
         recent_weather_data = get_recent_weather_data(DD_data, date, iteration_coords)
@@ -371,5 +357,5 @@ def prediction_model_run(
             iteration_coords,
             fly_params,
         )
-
+    return fflies_output_class(value=predicted_f3_days, array=None, figure=None)
     print("Predicted F3 days for ", iteration_coords, ":", predicted_f3_days)

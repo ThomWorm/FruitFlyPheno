@@ -87,7 +87,6 @@ def fetch_ncss_data(
                 ds = future.result()
                 datasets[index] = ds
             except Exception as e:
-
                 try:
                     # wait 5 seconds
                     time.sleep(3)
@@ -149,7 +148,6 @@ def validate_inputs(start_dates, coordinates, historical_data_buffer):
             raise ValueError("Start date is too early")
 
         elif end_date > pd.Timestamp.now() - pd.Timedelta(days=2):
-
             all_historical_data = False
             return all_historical_data
 
@@ -193,7 +191,6 @@ def check_data_at_point(data, coordinates):
     """
 
     for coord in coordinates:
-
         sample = data.sel(
             latitude=coord[0], longitude=coord[1], method="nearest"
         ).values
