@@ -1,2 +1,2 @@
 [tool.ruff]
-exclude = ["**/*.ipynb"]
+exclude = ["**/*.ipynb", "archive/**"]

@@ -8,6 +8,11 @@ import matplotlib.figure as mpl_fig
 from dataclasses import dataclass
 from xarray import DataArray
 
+import os
+import sys
+
+sys.path.append(os.path.abspath(".."))
+
 
 # from notebooks.inputs import get_recent_weather_data
 # from notebooks.simulations import calculate_predicted_f3_days_linear
@@ -33,7 +38,7 @@ class fflies_output_class(NamedTuple):
 
 
 def report_stats(model_output, coordinates):
-    if type(coordinates) == list:
+    if type(coordinates) is list:
         coordinates = coordinates[0]
     completion_at_coords = model_output.sel(
         latitude=coordinates[0], longitude=coordinates[1], method="nearest"

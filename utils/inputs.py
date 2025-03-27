@@ -1,13 +1,40 @@
 import pandas as pd
 import numpy as np
+import requests
 import json
 import datetime
 import time
 from datetime import timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import xarray as xr
+from io import BytesIO
+import os
+import sys
+
+sys.path.append(os.path.abspath(".."))
+print(os.path.abspath(".."))  # Debugging line to check the path
 
 # Replace 'some_module' with the actual module name
+
+
+def fetch_single_day_ncss(ncss_url):
+    """
+    Fetch data for a single day from a THREDDS server using NCSS.
+
+    Parameters:
+    - ncss_url: str, the NCSS URL to fetch data from
+
+    Returns:
+    - xarray.Dataset containing the requested data for the specified day
+    """
+    # Fetch the data using requests
+    response = requests.get(ncss_url)
+    response.raise_for_status()  # Raise an error for bad status codes
+
+    # Load the dataset into xarray
+    ds = xr.open_dataset(BytesIO(response.content), engine="h5netcdf")
+
+    return ds
 
 
 def fetch_ncss_data(
@@ -86,13 +113,13 @@ def fetch_ncss_data(
             try:
                 ds = future.result()
                 datasets[index] = ds
-            except Exception as e:
+            except Exception:
                 try:
                     # wait 5 seconds
                     time.sleep(3)
                     ds = future.result()
                     datasets.append(ds)
-                except:
+                except Exception as e:
                     print(e)
                     print(f"Error fetching data for URL {ncss_urls[index]}: {e}")
 
@@ -165,10 +192,24 @@ def get_bounding_box(coordinates):
     return (lons - 0.3, lons + 0.3, lats - 0.3, lats + 0.3)
 
 
-def load_species_params(target_species, data_path):
+import os
+import json
+
+
+def load_species_params(target_species, data_path=None):
     """Loads species-specific parameters from a JSON file."""
-    with open(data_path + "fly_models.json") as f:
+    # Determine the project root (one level up from the utils folder)
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+    # Default data_path to the "data" folder in the project root
+    if data_path is None:
+        data_path = os.path.join(project_root, "data")
+    else:
+        data_path = os.path.join(project_root, data_path)
+    # Load the JSON file
+    with open(os.path.join(data_path, "fly_models.json")) as f:
         fly_models = json.load(f)
+
     return fly_models.get(target_species)
 
 
@@ -200,11 +241,13 @@ def check_data_at_point(data, coordinates):
 
 
 def report_stats(model_output, coordinates):
-    if type(coordinates) == list:
+    if type(coordinates) is list:
         coordinates = coordinates[0]
+
     completion_at_coords = model_output.sel(
         latitude=coordinates[0], longitude=coordinates[1], method="nearest"
     ).values.item()
+
     print(int(completion_at_coords), " days to F3 completion at ", coordinates)
 
 
@@ -221,7 +264,10 @@ def get_recent_weather_data(DD_data, date, iteration_coords):
     )
 
 
-def process_start_dates():
+'''
+def process_start_dates(
+    DD_data, start_dates, coordinates, prediction_years, fly_params
+):
     """Processes start dates to calculate predicted F3 days for fruit fly phenology.
 
     Args:
@@ -236,7 +282,6 @@ def process_start_dates():
     DD_data, start_dates, coordinates, prediction_years, fly_params"
     """
     for i, date in enumerate(start_dates):
-        month_day = date.strftime("%m-%d")
         date_iteration_first_year = date - timedelta(days=prediction_years * 365)
         iteration_coords = coordinates[i]
 
@@ -252,3 +297,43 @@ def process_start_dates():
             iteration_coords,
             fly_params,
         )
+'''
+
+
+def prediction_model_make_temp_data(
+    DD_data, recent_weather_data, date_iteration_first_year, n, iteration_coords
+):
+    """
+    Generate a temporary dataset by combining degree-day (DD) data and recent weather data.
+    This function extracts a subset of the DD data starting from a specific date and location,
+    and substitutes the first `n` days of the extracted data with the provided recent weather data.
+    Args:
+        DD_data (xarray.DataArray): The degree-day data array containing temperature-related information.
+        recent_weather_data (numpy.ndarray or similar): The recent weather data to substitute into the DD data.
+        date_iteration_first_year (datetime.datetime): The starting date of the iteration's first year.
+        n (int): The number of years to offset from the starting date.
+        iteration_coords (tuple): A tuple containing the latitude and longitude coordinates
+                                  (latitude, longitude) for selecting the data.
+    Returns:
+        numpy.ndarray: A modified array where the first `n` days are replaced with recent weather data.
+    """
+    tmp_data = (
+        DD_data.sel(
+            t=slice(
+                date_iteration_first_year + timedelta(days=n * 365),
+                None,
+            )
+        )
+        .sel(
+            latitude=iteration_coords[0],
+            longitude=iteration_coords[1],
+            method="nearest",
+        )
+        .values
+    )
+
+    recent_weather_length = len(recent_weather_data)
+    # substitute the first n days of tmp_data with the recent weather data
+    tmp_data[:recent_weather_length] = recent_weather_data
+
+    return tmp_data

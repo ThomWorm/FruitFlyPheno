@@ -7,12 +7,14 @@ import os
 from datetime import datetime, timedelta, date
 from pydap.client import open_url
 import xarray as xr
+import netCDF4 as nc
 import warnings
-from utils.net_cdf_functions import *
-from .degree_day_equations import single_sine_horizontal_cutoff
+from archive.net_cdf_functions import *
+from ..utils.degree_day_equations import single_sine_horizontal_cutoff
 
 import time
 import pandas as pd
+from datetime import datetime, timedelta
 import requests
 from io import BytesIO
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -141,6 +143,7 @@ def check_and_download_missing_files(model_start_date, base_save_dir):
 
 
 def fetch_and_save_data(year, start_day_of_year, end_day_of_year, base_save_dir):
+
     save_dir = os.path.join(base_save_dir, "PRISM", str(year))
 
     os.makedirs(save_dir, exist_ok=True)
@@ -421,6 +424,7 @@ def fetch_ncss_data(
                 ds = future.result()
                 datasets[index] = ds
             except Exception as e:
+
                 try:
                     # wait 5 seconds
                     time.sleep(3)

@@ -6,15 +6,51 @@ import pandas as pd
 import numpy as np
 import time
 import xarray as xr
+import warnings
 
 # -------------------
-from custom_errors import *
-from inputs import *
-from degree_day_equations import *
-from outputs import fflies_output_class
+from utils.custom_errors import PredictionNeededError, HistoricalDataBufferError
+from utils.inputs import (
+    fetch_ncss_data,
+    get_recent_weather_data,
+    check_data_at_point,
+    prediction_model_make_temp_data,
+    get_bounding_box,
+)
+from utils.degree_day_equations import vsingle_sine_horizontal_cutoff
+from utils.outputs import fflies_output_class, report_stats
+
+import sys
+
+sys.path.append(os.path.abspath(".."))
 
 
 def da_calculate_degree_days(LTT, UTT, data):
+    """
+    Calculate degree days using the single sine horizontal cutoff method.
+    This function computes degree days for a given dataset based on the
+    lower temperature threshold (LTT) and upper temperature threshold (UTT).
+    It supports both 1D and 3D data arrays.
+    Args:
+        LTT (float): Lower temperature threshold for degree day calculation.
+        UTT (float): Upper temperature threshold for degree day calculation.
+        data (xarray.DataArray): Input data containing minimum and maximum
+            temperatures. The data should have dimensions:
+            - For 1D: ["t"]
+            - For 3D: ["t", "longitude", "latitude"]
+    Returns:
+        xarray.DataArray: A DataArray containing the calculated degree days
+        with the same dimensions and coordinates as the input data.
+    Raises:
+        UserWarning: If NaN values are detected in the calculated degree days
+        for 3D data arrays.
+    Notes:
+        - The function uses `xr.apply_ufunc` to apply the
+          `vsingle_sine_horizontal_cutoff` function element-wise.
+        - For 3D data arrays, ensure the input dimensions match the expected
+          structure.
+    """
+
     # returns a data array with the degree days
     if len(data.dims) == 1:
         # print("calculating degree days for 1D data array")
@@ -63,7 +99,7 @@ def da_calculate_degree_days(LTT, UTT, data):
 
 
 def select_point_data(data, coordinates):
-    if type(coordinates) == list:
+    if type(coordinates) is list:
         coordinates = coordinates[0]
     return data.sel(latitude=coordinates[0], longitude=coordinates[1], method="nearest")
 
@@ -246,7 +282,7 @@ def all_historical_model_run(
     ###############
     try:
         # if we receive multiple points, we will just output the completion dates
-        if len(coordinates) == 1 and context_map == True:
+        if len(coordinates) == 1 and context_map:
             time_index = np.argwhere(
                 DD_data.t.values == np.datetime64(start_dates[0])
             ).flatten()[0]
@@ -323,9 +359,9 @@ def prediction_model_run(
     ######
     # Model Setup
     ######
-    bbox = get_bounding_box(coordinates)
-    first_date = min(start_dates)
-    historical_data_first_year = first_date.year - prediction_years
+    # bbox = get_bounding_box(coordinates)
+    # first_date = min(start_dates)
+    # historical_data_first_year = first_date.year - prediction_years
 
     """
     replace to fetch data from server when available
@@ -336,9 +372,20 @@ def prediction_model_run(
         bbox=get_bounding_box(coordinates),
     )
     """
-    if cache_path and os.path.exists(cache_path):
-        with open(cache_path, "rb") as cache_file:
-            raw_PRISM = pickle.load(cache_file)
+
+    if cache_path:
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        cache_path = os.path.join(project_root, cache_path)
+        print("Cache path:", cache_path)
+        if os.path.exists(cache_path):
+            print(os.listdir(cache_path))
+            with open(cache_path, "rb") as cache_file:
+                raw_PRISM = pickle.load(cache_file)
+
+        elif not os.path.exists(cache_path):
+            raise FileNotFoundError(
+                f"Cache file not found at {cache_path}. Please check the path."
+            )
 
     DD_data = da_calculate_degree_days(fly_params["LTT"], fly_params["UTT"], raw_PRISM)
     del raw_PRISM

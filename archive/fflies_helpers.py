@@ -7,7 +7,7 @@ import json
 
 sys.path.append(os.path.abspath(".."))
 from utils.degree_day_equations import *
-from utils.net_cdf_functions import *
+from archive.net_cdf_functions import *
 from utils.processing_functions import *
 
 
