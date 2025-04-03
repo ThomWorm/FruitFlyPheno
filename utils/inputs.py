@@ -59,7 +59,7 @@ def fetch_ncss_data(
     - xarray.Dataset containing the requested data
     """
     # Convert start_date to datetime
-    start_date = datetime.strptime(start_date, "%Y-%m-%d")
+    start_date = start_date.strptime(start_date, "%Y-%m-%d")
 
     # Calculate end_date
     if n_days is None:
@@ -190,10 +190,6 @@ def get_bounding_box(coordinates):
         return (min(lons), max(lons), min(lats), max(lats))
     lats, lons = coordinates[0]
     return (lons - 0.3, lons + 0.3, lats - 0.3, lats + 0.3)
-
-
-import os
-import json
 
 
 def load_species_params(target_species, data_path=None):

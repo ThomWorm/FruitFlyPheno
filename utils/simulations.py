@@ -376,9 +376,7 @@ def prediction_model_run(
     if cache_path:
         project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         cache_path = os.path.join(project_root, cache_path)
-        print("Cache path:", cache_path)
         if os.path.exists(cache_path):
-            print(os.listdir(cache_path))
             with open(cache_path, "rb") as cache_file:
                 raw_PRISM = pickle.load(cache_file)
 
@@ -404,4 +402,4 @@ def prediction_model_run(
             iteration_coords,
             fly_params,
         )
-    return fflies_output_class(value=predicted_f3_days, array=None, figure=None)
+    return fflies_output_class(finish_date_list=predicted_f3_days)

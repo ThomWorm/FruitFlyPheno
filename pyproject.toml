@@ -1,2 +1,15 @@
+[project]
+name = "fruitflypheno"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "cartopy>=0.24.1",
+    "ipykernel>=6.29.5",
+    "matplotlib>=3.10.1",
+    "requests>=2.32.3",
+    "xarray>=2025.3.1",
+]
 [tool.ruff]
-exclude = ["**/*.ipynb", "archive/**"]
+exclude = ["archive", "docs", "tests", "*.ipynb"]

@@ -3,9 +3,9 @@ from matplotlib.patches import Circle
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import cartopy.io.img_tiles as cimgt
-from typing import NamedTuple, Optional
+from typing import Optional
 import matplotlib.figure as mpl_fig
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from xarray import DataArray
 
 import os
@@ -17,10 +17,17 @@ sys.path.append(os.path.abspath(".."))
 # from notebooks.inputs import get_recent_weather_data
 # from notebooks.simulations import calculate_predicted_f3_days_linear
 @dataclass
-class fflies_output_class(NamedTuple):
-    array: Optional[DataArray] = None  # Can be a DataFrame or None
-    figure: Optional[mpl_fig.Figure] = None  # Can be a Figure or None
+class fflies_output_class:
+    finish_date_list: Optional[list] = field(
+        default_factory=list
+    )  # Can be a DataFrame or None
+    figure: Optional[mpl_fig.Figure] = field(
+        default_factory=mpl_fig.Figure
+    )  # Can be a matplotlib figure or None
     value: Optional[int] = None  # Can be an int or None
+    array: Optional[DataArray] = field(
+        default_factory=DataArray
+    )  # Can be an xarray DataArray or None
 
     def plot(self):
         if self.figure is not None:
