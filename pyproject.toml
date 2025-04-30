@@ -5,11 +5,14 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "aiohttp>=3.11.18",
     "cartopy>=0.24.1",
     "ipykernel>=6.29.5",
     "matplotlib>=3.10.1",
     "requests>=2.32.3",
-    "xarray>=2025.3.1",
+    "virtualizarr>=1.3.2",
+    "xarray[io]>=2025.3.1",
+    "zarr>=3.0.7",
 ]
 [tool.ruff]
 exclude = ["archive", "docs", "tests", "*.ipynb"]

@@ -192,21 +192,17 @@ def get_bounding_box(coordinates):
     return (lons - 0.3, lons + 0.3, lats - 0.3, lats + 0.3)
 
 
-def load_species_params(target_species, data_path=None):
-    """Loads species-specific parameters from a JSON file."""
-    # Determine the project root (one level up from the utils folder)
-    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+def load_species_params(species, data_path=None):
+    # load json file
+    data_path = os.path.join(data_path, "fly_models.json")
+    with open(data_path) as f:
+        data = json.load(f)
+    species = data.get(species)
+    if not species:
+        return None
 
-    # Default data_path to the "data" folder in the project root
-    if data_path is None:
-        data_path = os.path.join(project_root, "data")
-    else:
-        data_path = os.path.join(project_root, data_path)
-    # Load the JSON file
-    with open(os.path.join(data_path, "fly_models.json")) as f:
-        fly_models = json.load(f)
-
-    return fly_models.get(target_species)
+    return species.get("stages")
+    # Handle default stage
 
 
 def fetch_weather_data(start_date, end_date, bbox, days_of_data):

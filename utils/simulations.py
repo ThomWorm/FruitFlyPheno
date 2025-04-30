@@ -290,7 +290,6 @@ def all_historical_model_run(
             model_output = apply_fflies_model_run_distributed(
                 DD_data, time_index, fly_params["dd_threshold"]
             )
-            report_stats(model_output, coordinates)
             return fflies_output_class(array=model_output)
 
         else:

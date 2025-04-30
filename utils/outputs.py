@@ -21,9 +21,7 @@ class fflies_output_class:
     finish_date_list: Optional[list] = field(
         default_factory=list
     )  # Can be a DataFrame or None
-    figure: Optional[mpl_fig.Figure] = field(
-        default_factory=mpl_fig.Figure
-    )  # Can be a matplotlib figure or None
+    
     value: Optional[int] = None  # Can be an int or None
     array: Optional[DataArray] = field(
         default_factory=DataArray
