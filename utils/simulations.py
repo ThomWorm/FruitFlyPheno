@@ -7,7 +7,7 @@ import numpy as np
 import time
 import xarray as xr
 import warnings
-
+'''
 # -------------------
 from utils.custom_errors import PredictionNeededError, HistoricalDataBufferError
 from utils.inputs import (
@@ -96,7 +96,6 @@ def da_calculate_degree_days(LTT, UTT, data):
         )
 
         return degree_days_vec
-
 
 def select_point_data(data, coordinates):
     if type(coordinates) is list:
@@ -402,3 +401,173 @@ def prediction_model_run(
             fly_params,
         )
     return fflies_output_class(finish_date_list=predicted_f3_days)
+
+
+'''
+##########################
+
+import numpy as np
+from typing import Dict, Tuple, Union, List
+import xarray as xr
+from utils.degree_day_equations import single_sine_horizontal_cutoff
+
+
+def fflies_core(
+    tmin_1d: np.ndarray,
+    tmax_1d: np.ndarray,
+    start_day: int,
+    stages: List[Dict],
+    generations: int = 3,
+) -> Dict[str, Union[Tuple[int, int, float], Tuple[str, int, float]]]:
+    """
+    Returns:
+    - For complete generations: ('completed', days, accumulated_dd)
+    - For incomplete: ('stage_X_gen_Y', current_days, partial_dd)
+    """
+
+     # Check for missing data
+    if np.any(np.isnan(tmin_1d)) or np.any(np.isnan(tmax_1d)):
+        return np.nan
+    
+    current_day = start_day
+    total_days = len(tmin_1d)
+
+    for gen in range(1, generations + 1):
+        stage_accumulator = 0.0
+
+        for stage_idx, stage in enumerate(stages):
+            stage_dd = 0.0
+            days_in_stage = 0
+            while current_day < total_days:
+                # Calculate degree days for all remaining days
+                dd = single_sine_horizontal_cutoff(
+                    tmin_1d[current_day],
+                    tmax_1d[current_day],
+                    stage["LTT"],
+                    stage["UTT"],
+                )
+
+                stage_dd += dd
+                stage_accumulator += dd
+                days_in_stage += 1
+                current_day += 1
+
+                if stage_accumulator >= stage["dd_threshold"]:
+                    '''
+                    print(
+                        f"Stage {stage_idx + 1} of generation {gen} completed on day {current_day}"
+                    )
+                    '''
+                    break
+
+            if stage_accumulator < stage["dd_threshold"]:
+                # Incomplete stage - triggers when the loop ends without reaching the threshold
+                return -1.0 #biological incompletion
+
+
+        # Generation completed
+        if gen == generations:
+            days_elapsed = current_day - start_day
+            # here we have fully completed the generations and so we are on the next generation
+            return float(days_elapsed) # may wish to revise output structure
+        
+    raise ValueError("generation accumulation failed") #should not reach here
+
+def fflies_spatial_wrapper(
+    tmin_xr: xr.DataArray,  # (time, lat, lon)
+    tmax_xr: xr.DataArray,  # (time, lat, lon)
+    start_day: int,
+    stages: List[Dict],
+    generations: int = 3,
+) -> xr.Dataset:
+    
+    """Simplified wrapper matching core outputs"""
+    results= xr.apply_ufunc(
+        fflies_core,
+        tmin_xr,
+        tmax_xr,
+        input_core_dims=[["t"], ["t"]],
+        kwargs={"start_day": start_day, "stages": stages, "generations": generations},
+        output_core_dims=[[], ],
+        output_dtypes=[float],
+        vectorize=True,
+        dask="parallelized",
+        exclude_dims={"t"},
+    )
+
+    return xr.Dataset({
+        'days_to_f3_completion': results.where(results >= 0),  # Only show valid completions
+        'incomplete_development': (results == -1),
+        'missing_data': np.isnan(results)  # Original missing data
+    })
+
+def fflies_prediction(
+    current_data: xr.Dataset,  # tmin/tmax (time, lat, lon) - days since start_date
+    historical_data: xr.Dataset,  # tmin/tmax (year, time, lat, lon)
+    stages: List[Dict],
+    detection_date: pd.Timestamp,
+
+    generations: int = 3,
+    start_year: int = 2021,
+    end_year: int = 2023,
+
+) -> xr.Dataset:
+    """
+    Predicts development using:
+    1. Current year data until available
+    2. Continues with each historical year's data
+    
+    Returns xr.Dataset with (year, lat, lon) containing:
+    - total_days: Days from start to completion
+    - completed: Boolean whether full development occurred
+    """
+
+
+    #### setup outputs
+    years = np.arange(start_year, end_year + 1)
+    n_years = len(years)
+    shape = (n_years, len(current_data.latitude), len(current_data.longitude))
+    
+    outputs = xr.Dataset({
+        'days_to_f3_completion': (('year', 'latitude', 'longitude'), np.full(shape, np.nan, dtype=np.float32)),
+        'incomplete_development': (('year', 'latitude', 'longitude'), np.full(shape, False, dtype=bool)),
+        'missing_data': (('year', 'latitude', 'longitude'), np.full(shape, False, dtype=bool))
+    }, coords={
+        'year': years,
+        'latitude': current_data.latitude,
+        'longitude': current_data.longitude
+    })
+    
+  
+    #####
+
+    
+    detection_day_of_year = detection_date.dayofyear
+    days_recent_data = len(current_data.t)
+    for year in range(start_year, end_year + 1):
+        historical_date = pd.Timestamp(year=year, month=detection_date.month, day=detection_date.day)
+        historical_index = historical_data.get_index("t").get_loc(historical_date)
+        historical_tmin = historical_data["tmin"].isel(t=slice(historical_index + days_recent_data, None))
+        historical_tmax = historical_data["tmax"].isel(t=slice(historical_index + days_recent_data, None))
+
+        # if efficiency become an issue, we can use np arrays to avoid copying
+        model_run_tmax = xr.concat(
+            [current_data["tmax"], historical_tmax], dim="t"
+        )
+        model_run_tmin = xr.concat(
+            [current_data["tmin"], historical_tmin], dim="t"
+        )
+
+        #run model
+        result = fflies_spatial_wrapper(
+            model_run_tmin,
+            model_run_tmax,
+            start_day=0,
+            stages=stages,
+            generations=generations,
+        )
+        outputs['days_to_f3_completion'].loc[dict(year=year)] = result['days_to_f3_completion']
+        outputs['incomplete_development'].loc[dict(year=year)] = result['incomplete_development']
+        outputs['missing_data'].loc[dict(year=year)] = result['missing_data']
+    
+    return outputs

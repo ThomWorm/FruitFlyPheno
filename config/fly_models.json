@@ -1,0 +1,64 @@
+{
+  "mexfly": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 999,
+        "LTT": 9.4,
+        "dd_threshold": 754
+      }
+    ]
+  },
+  "off": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 999,
+        "LTT": 8.375,
+        "dd_threshold": 625
+      }
+    ]
+  },
+  "medfly": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 999,
+        "LTT": 12.44,
+        "dd_threshold": 346
+      }
+    ]
+  },
+  "z_tau": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 999,
+        "LTT": 9.22,
+        "dd_threshold": 459.28
+      }
+    ]
+  },
+  "multistage_example": {
+    "stages": [
+      {
+        "name": "egg",
+        "UTT": 35,
+        "LTT": 10,
+        "dd_threshold": 100
+      },
+      {
+        "name": "larva",
+        "UTT": 38,
+        "LTT": 12,
+        "dd_threshold": 200
+      },
+      {
+        "name": "pupa",
+        "UTT": 999,
+        "LTT": 8,
+        "dd_threshold": 150
+      }
+    ]
+  }
+}
