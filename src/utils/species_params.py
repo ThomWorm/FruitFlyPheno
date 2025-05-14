@@ -1,5 +1,7 @@
 import os
 import json
+
+
 def load_species_params(species, data_path=None):
     # load json file of pre-defined species parameters
     data_path = os.path.join(data_path, "fly_models.json")

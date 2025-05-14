@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import cartopy.io.img_tiles as cimgt
 from typing import Optional
-import matplotlib.figure as mpl_fig
 from dataclasses import dataclass, field
 from xarray import DataArray
 
@@ -21,7 +20,7 @@ class fflies_output_class:
     finish_date_list: Optional[list] = field(
         default_factory=list
     )  # Can be a DataFrame or None
-    
+
     value: Optional[int] = None  # Can be an int or None
     array: Optional[DataArray] = field(
         default_factory=DataArray

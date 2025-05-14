@@ -2,8 +2,8 @@
     {
         "user_id": "user_001",
         "coordinates": {
-            "latitude": 42.36,
-            "longitude": -71.06
+            "latitude": 34.63, 
+            "longitude": -117.338321
         },
         "date": "2023-06-15",
         "species": "off"
@@ -11,8 +11,8 @@
     {
         "user_id": "user_002",
         "coordinates": {
-            "latitude": 34.05,
-            "longitude": -118.24
+            "latitude": 34.63,
+            "longitude": -117.338321
         },
         "date": "2025-02-20",
         "species": "mexfly"

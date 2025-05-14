@@ -4,7 +4,7 @@ input:
 
 
 weather:
-  cache_path: "./cache/pred_cache.pkl"
+  cache_dir: "./cache/pred_cache.pkl"
 
 # config/settings.yaml
 output:

@@ -1,14 +1,15 @@
 # main.py
 # Adjusted imports to reflect the new location of main.py in src
-from src.io_handlers.config import load_config
-from src.core.weather import WeatherDataHandler
-from src.io_handlers.user_input import get_user_input
-from src.utils.species_params import load_species_params
-from src.core.model import DegreeDayModel
+from utils import fflies_prediction, fflies_spatial_wrapper
+from src import (
+    WeatherDataHandler,
+    load_species_params,
+    get_user_input,
+    load_config,
+)
 
 
 def main():
-
     # Load configuration
     config = load_config("../config/settings.yaml")
     inputs = get_user_input(test_mode=True)  # CLI/GUI/web form
@@ -17,13 +18,14 @@ def main():
         # Check if the input is valid
 
         # Extract parameters
-        target_date = input.get("detection_date")
+        detection_date = input.get("detection_date")
         species = input.get("species")
         generations = input.get("generations")
-        output_formats = input.get("output_formats", [])
-
+        # output_formats = input.get("output_formats", [])
+        input_latitude = input.get("latitude")
+        input_longitude = input.get("longitude")
         # TODO: replace with actual validation logic
-        if not target_date or not species or not generations:
+        if not detection_date or not species or not generations:
             raise ValueError(
                 "Missing required parameters: detection_date, species, generations."
             )
@@ -35,38 +37,33 @@ def main():
         # weather loading
         # ----------------------------
         # TODO : replace with ZARR server calls when made
-        weather_data = config["weather"]["data_path"]
+        # unless ZARR is much slower than expected, extract all 20 years of data from the server
+        # weather_data = config["weather"]["data_path"]
 
-    # Initialize core components
-    weather = WeatherDataHandler(config["weather"])
-    # Load species parameters
+        weather = WeatherDataHandler(config["weather"], input_latitude, input_longitude)
+        weather_data = weather.load_cached()
 
-    model = DegreeDayModel(species_params)
-    output = OutputGenerator(config["output"])
+        # ----------------------------
+        # 2. MODELLING
+        # ----------------------------
+        test_idx = weather_data["t"].get_index("t").get_loc(detection_date)
+        recent_weather_run = fflies_spatial_wrapper(
+            weather_data["tmax"], weather_data["tmin"], test_idx, species_params
+        )
+        if recent_weather_run["incomplete_development"].any():
+            prediction_run = fflies_prediction(
+                current_data=weather_data.isel(t=slice(test_idx, None)),
+                historical_data=weather_data,
+                stages=species_params,
+                detection_date=detection_date,
+                generations=generations,
+                start_year=2021,  # TODO replace with years calculated from the data
+                end_year=2024,
+            )
 
-    # ----------------------------
-    # 3. DATA PREPARATION
-    # ----------------------------
-    # Get weather data
-    current_data = weather.get_recent_data(
-        start_date=inputs["target_date"], days_back=30  # Example: last 30 days
-    )
+        return 0
 
-    historical_data = weather.get_historical_data(
-        years=range(2000, 2023)  # Example range
-    )
-
-    # ----------------------------
-    # 4. MODEL EXECUTION
-    # ----------------------------
-    results = model.run(
-        current_data=current_data,
-        historical_data=historical_data,
-        detection_date=pd.Timestamp(inputs["target_date"]),
-        species=inputs["species"],
-        generations=inputs["generations"],
-    )
-
+    """
     # ----------------------------
     # 5. OUTPUT GENERATION
     # ----------------------------
@@ -85,6 +82,7 @@ def main():
         )
 
     print("Pipeline executed successfully!")
+    """
 
 
 if __name__ == "__main__":
