@@ -8,7 +8,6 @@ from pathlib import Path
 @dataclass
 class FfliesOutput:
     data: xr.Dataset  # Accepts an xarray Dataset or DataArray
-    output_dir: Path  # Directory to save outputs
     latitude: float  # Latitude for the data
     longitude: float  # Longitude for the data
 
@@ -41,3 +40,13 @@ class FfliesOutput:
         plt.savefig(self.output_dir / filename)
         plt.close()
         print(f"Plot saved at: {self.output_dir / filename}")
+
+    def _check_local_variation(self) -> bool:
+        """
+        Check if the data has local variation based on latitude and longitude.
+
+        Returns:
+            bool: True if local variation is present, False otherwise.
+        """
+        # Placeholder for actual logic to check local variation
+        return True

@@ -51,7 +51,9 @@ def main():
             longitude=input["longitude"],
             credentials={},
         )
-        weather_data = weather.load_cached()
+        weather_data = (
+            weather.load_cached()
+        )  # TODO: replace with weather.fetch_remote_data() when server is ready
 
         # ----------------------------
         # 2. MODELLING
@@ -61,6 +63,7 @@ def main():
         results = fflies_spatial_wrapper(
             weather_data["tmax"], weather_data["tmin"], test_idx, species_params
         )
+        all_historical = 1
         if results["incomplete_development"].any():
             results = fflies_prediction_wrapper(
                 current_data=weather_data.isel(t=slice(test_idx, None)),
@@ -71,8 +74,18 @@ def main():
                 start_year=2021,  # TODO replace with years calculated from the data
                 end_year=2024,
             )
+            all_historical = 0
 
-        return 0
+        # ----------------------------
+        # 3. POST-PROCESSING
+        # ----------------------------
+        output = FfliesOutput(
+            data=results,
+            detection_date=detection_date,
+            generations=input["generations"],
+            species=input["species"],
+            all_historical=all_historical,
+        )
 
     """
     # ----------------------------
