@@ -9,13 +9,15 @@ def get_user_input(test_mode=True):
         dict: User inputs including target date, species, generations, and output formats.
     """
     if test_mode:
-        return {
+        return [
             {
                 "user_email": "jon@test.com",
                 "detection_date": "2023-03-15",
                 "species": "mexfly",
                 "generations": 3,
                 "output_formats": ["json"],
+                "latitude": 34.625,
+                "longitude": -117.3329,
             },
             {
                 "user_email": "jon@test.com",
@@ -23,8 +25,10 @@ def get_user_input(test_mode=True):
                 "species": "off",
                 "generations": 3,
                 "output_formats": ["json"],
+                "latitude": 34.625,
+                "longitude": -117.3329,
             },
-        }
+        ]
 
     # In a real application, you would replace this with actual user input logic
     return {

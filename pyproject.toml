@@ -1,5 +1,5 @@
 [project]
-name = "fruitflypheno"
+name = "fflies"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -17,3 +17,4 @@ dependencies = [
 ]
 [tool.ruff]
 exclude = ["archive", "docs", "tests", "*.ipynb"]
+
