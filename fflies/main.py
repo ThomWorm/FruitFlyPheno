@@ -10,6 +10,9 @@ from core import (
 from io_handlers import load_config, get_user_input
 from utils import load_species_params
 import pandas as pd
+import panel as pn
+
+import time
 
 
 def main():
@@ -58,7 +61,9 @@ def main():
         # ----------------------------
         # 2. MODELLING
         # ----------------------------
-        test_idx = weather_data["t"].get_index("t").get_loc(input["detection_date"])
+        test_idx = (
+            weather_data["t"].get_index("t").get_loc(input["detection_date"])
+        )  # TODO double check that loc off of a string works _ I think it does
         detection_date = pd.to_datetime(input["detection_date"])
         results = fflies_spatial_wrapper(
             weather_data["tmax"], weather_data["tmin"], test_idx, species_params
@@ -81,13 +86,21 @@ def main():
         # ----------------------------
         output = FfliesOutput(
             data=results,
-            detection_date=detection_date,
+            detection_date=input["detection_date"],
             generations=input["generations"],
             species=input["species"],
             all_historical=all_historical,
+            latitude=input["latitude"],
+            longitude=input["longitude"],
         )
-
-    """
+        plot_panel = output.plot()
+        server = plot_panel.show(open=True)
+        try:
+            while True:
+                time.sleep(0.1)
+        except KeyboardInterrupt:
+            server.stop()
+        """
     # ----------------------------
     # 5. OUTPUT GENERATION
     # ----------------------------
