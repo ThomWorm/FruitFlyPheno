@@ -74,6 +74,7 @@ def fflies_spatial_wrapper(
     generations: int = 3,
 ) -> xr.Dataset:
     """Simplified wrapper matching core outputs"""
+
     results = xr.apply_ufunc(
         fflies_core,
         tmin_xr,
@@ -85,6 +86,7 @@ def fflies_spatial_wrapper(
         vectorize=True,
         dask="parallelized",
         exclude_dims={"t"},
+        dask_gufunc_kwargs={"output_sizes": {"generation": generations}},
     )
 
     return xr.Dataset(
@@ -121,12 +123,16 @@ def fflies_prediction_wrapper(
     """
     years = np.arange(start_year, end_year + 1)
     n_years = len(years)
-    shape = (
-        n_years,
-        generations,
-        len(current_data.latitude),
-        len(current_data.longitude),
-    )
+    if "latitude" not in current_data.dims or "longitude" not in current_data.dims:
+        print("nodata")
+        shape = (n_years, generations, 0, 0)
+    else:
+        shape = (
+            n_years,
+            generations,
+            len(current_data.latitude),
+            len(current_data.longitude),
+        )
 
     outputs = xr.Dataset(
         {
@@ -154,6 +160,8 @@ def fflies_prediction_wrapper(
     detection_day_of_year = detection_date.dayofyear
     days_recent_data = len(current_data.t)
     for year in range(start_year, end_year + 1):
+        print(start_year)
+        print(historical_data)
         historical_date = pd.Timestamp(
             year=year, month=detection_date.month, day=detection_date.day
         )

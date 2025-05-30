@@ -1,4 +1,12 @@
-[
+[   {
+        "user_id": "user_002",
+        "coordinates": {
+            "latitude": 34.63,
+            "longitude": -117.338321
+        },
+        "date": "2025-02-20",
+        "species": "mexfly"
+    },
     {
         "user_id": "user_001",
         "coordinates": {
@@ -7,14 +15,6 @@
         },
         "date": "2023-06-15",
         "species": "off"
-    },
-    {
-        "user_id": "user_002",
-        "coordinates": {
-            "latitude": 34.63,
-            "longitude": -117.338321
-        },
-        "date": "2025-02-20",
-        "species": "mexfly"
     }
+    
 ]

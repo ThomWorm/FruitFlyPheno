@@ -24,12 +24,9 @@ class FfliesOutput:
     species: str
     all_historical: int
 
-    def create_json(self, filename: str):
+    def create_json(self):
         """
-        Save the xarray Dataset/DataArray as a JSON file.
-
-        Parameters:
-            filename (str): The name of the JSON file to create.
+        Return the output JSON structure as a dictionary instead of writing to a file.
         """
         # ==============
         # extract mean completions for each generation
@@ -81,9 +78,8 @@ class FfliesOutput:
                 for i in range(len(mean_completion_dates))
             },
         }
-        # write the json to a file
-        with open(filename, "w") as json_file:
-            json.dump(output_json, json_file, indent=4)
+
+        return output_json
 
     def plot(self, var_name: str = None):
         """

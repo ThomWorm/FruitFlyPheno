@@ -11,17 +11,29 @@ from io_handlers import load_config, get_user_input
 from utils import load_species_params
 import pandas as pd
 import panel as pn
+import sys
+import json
 
 import time
 
 
-def main():
+def main(input_json=None, plot=False):
     # Load configuration
     config = load_config("../config/settings.yaml")
-    inputs = get_user_input(test_mode=True)  # CLI/GUI/web form returns a list of dicts
+    if input_json == "test" or input_json is None:
+        input_json = "test"
+        inputs = get_user_input(test_mode=True)
+    else:
+        with open(input_json, "r") as f:
+            inputs = json.load(f)
+
+        # CLI/GUI/web form returns a list of dicts
+    weather = WeatherDataHandler(cache_dir=config["weather"]["cache_dir"])
+
+    if plot and len(inputs) > 1:
+        raise ValueError("Plotting is only supported for a single input.")
 
     for input in inputs:
-
         # ----------------------------
         # 1. SETUP
         # ----------------------------
@@ -32,39 +44,46 @@ def main():
         # output_formats = input["output_formats"]
         # TODO: replace with actual validation logic
         if (
-            not input["detection_date"]
-            or not input["species"]
-            or not input["generations"]
+            not input.get("detection_date")
+            or not input.get("species")
+            or not input.get("generations")
         ):
             raise ValueError(
                 "Missing required parameters: detection_date, species, generations."
             )
-
         species_params = load_species_params(species=input["species"])
         # ----------------------------
         # weather loading
         # ----------------------------
-        # TODO : replace with ZARR server calls when made
-        # unless ZARR is much slower than expected, extract all 20 years of data from the server
-        # weather_data = config["weather"]["data_path"]
+        # Set start_date to Jan 1st, 20 years before detection_date
 
-        weather = WeatherDataHandler(
-            cache_dir=config["weather"]["cache_dir"],
-            latitude=input["latitude"],
-            longitude=input["longitude"],
-            credentials={},
-        )
-        weather_data = (
-            weather.load_cached()
-        )  # TODO: replace with weather.fetch_remote_data() when server is ready
-
+        if input_json is None:
+            weather_data = weather.load_cached()
+        else:
+            detection_dt = pd.to_datetime(input["detection_date"])
+            start_year = detection_dt.year - 20
+            start_date = pd.Timestamp(year=start_year, month=1, day=1).strftime(
+                "%Y-%m-%d"
+            )
+            weather_data = weather.fetch_data_gridmet(
+                latitude=input["latitude"],
+                longitude=input["longitude"],
+                time_range=(start_date, pd.Timestamp.now()),
+                use_buffer=plot,  # Use buffer if plotting
+            )
+            # Ensure t is a single chunk for apply_ufunc compatibility
+            weather_data = weather_data.load()
         # ----------------------------
         # 2. MODELLING
         # ----------------------------
+        print(type(weather_data))
+        print(weather_data.chunks)
         test_idx = (
             weather_data["t"].get_index("t").get_loc(input["detection_date"])
         )  # TODO double check that loc off of a string works _ I think it does
         detection_date = pd.to_datetime(input["detection_date"])
+        print("tmax chunks:", weather_data["tmax"].chunks)
+        print("tmin chunks:", weather_data["tmin"].chunks)
         results = fflies_spatial_wrapper(
             weather_data["tmax"], weather_data["tmin"], test_idx, species_params
         )
@@ -80,7 +99,6 @@ def main():
                 end_year=2024,
             )
             all_historical = 0
-
         # ----------------------------
         # 3. POST-PROCESSING
         # ----------------------------
@@ -93,34 +111,32 @@ def main():
             latitude=input["latitude"],
             longitude=input["longitude"],
         )
-        plot_panel = output.plot()
-        server = plot_panel.show(open=True)
-        try:
-            while True:
-                time.sleep(0.1)
-        except KeyboardInterrupt:
-            server.stop()
-        """
-    # ----------------------------
-    # 5. OUTPUT GENERATION
-    # ----------------------------
-    if "plot" in inputs["output_formats"]:
-        output.generate_plots(
-            results,
-            filename=f"{inputs['species']}_generation_{inputs['target_date']}.png",
-        )
-
-    if "json" in inputs["output_formats"]:
-        output.save_json(results, filename=f"{inputs['species']}_results.json")
-
-    if "report" in inputs["output_formats"]:
-        output.generate_report(
-            results, species=inputs["species"], date=inputs["target_date"]
-        )
-
-    print("Pipeline executed successfully!")
-    """
+        if plot:
+            plot_panel = output.plot()
+            server = plot_panel.show(open=True)
+            try:
+                while True:
+                    time.sleep(0.1)
+            except KeyboardInterrupt:
+                server.stop()
+        else:
+            # Output JSON file per input
+            output.create_json(filename=f"{input['species']}_results.json")
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run FruitFlyPheno main pipeline.")
+    parser.add_argument(
+        "--input", type=str, default=None, help="Path to input JSON file."
+    )
+    parser.add_argument(
+        "--plot",
+        action="store_true",
+        help="Flag to plot results instead of saving JSON.",
+    )
+    args = parser.parse_args()
+
+    # If --input is not provided, pass None to main (will use test input)
+    main(input_json=args.input, plot=args.plot)
