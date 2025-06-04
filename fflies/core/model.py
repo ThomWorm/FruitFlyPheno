@@ -37,6 +37,7 @@ def fflies_core(
             days_in_stage = 0
             while current_day < total_days:
                 # Calculate degree days for all remaining days
+
                 dd = single_sine_horizontal_cutoff(
                     tmin_1d[current_day],
                     tmax_1d[current_day],
@@ -124,7 +125,9 @@ def fflies_prediction_wrapper(
     years = np.arange(start_year, end_year + 1)
     n_years = len(years)
     if "latitude" not in current_data.dims or "longitude" not in current_data.dims:
-        print("nodata")
+        raise ValueError(
+            "Current data must have 'latitude' and 'longitude' dimensions."
+        )
         shape = (n_years, generations, 0, 0)
     else:
         shape = (
@@ -160,8 +163,7 @@ def fflies_prediction_wrapper(
     detection_day_of_year = detection_date.dayofyear
     days_recent_data = len(current_data.t)
     for year in range(start_year, end_year + 1):
-        print(start_year)
-        print(historical_data)
+
         historical_date = pd.Timestamp(
             year=year, month=detection_date.month, day=detection_date.day
         )

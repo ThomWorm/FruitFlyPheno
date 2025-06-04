@@ -81,7 +81,7 @@ class FfliesOutput:
 
         return output_json
 
-    def plot(self, var_name: str = None):
+    def plot(self, var_name: str = "days_to_completion", save_path: str = None):
         """
         Interactive map-based plot of the dataset using OpenStreetMap underlay.
 
@@ -89,6 +89,8 @@ class FfliesOutput:
         -----------
         var_name : str, optional
             Name of the variable in self.data to plot. If None, the first data variable is used.
+        save_path : str, optional
+            If provided, saves the plot as an HTML file to this path.
 
         Returns:
         --------
@@ -100,7 +102,10 @@ class FfliesOutput:
             if var_name
             else next(iter(self.data.data_vars.values()))
         )
-        precomputed = {"Likely Completion Date": da.mean(dim="year")}
+        precomputed = {
+            "Likely Completion Date": da.mean(dim="year"),
+            "Range of Likely Completion Dates": da.max(dim="year") - da.min(dim="year"),
+        }
 
         # Ensure lat/lon are sorted
         da = da.sortby(["latitude", "longitude"])
@@ -108,38 +113,72 @@ class FfliesOutput:
         years = da.coords["year"].values
         generations = da.coords["generation"].values
         year_labels = {f"sim{y}": y for y in da.coords["year"].values}
-        custom_layers = {"Mean (All Years)": "mean"}
-
-        year_options = {**year_labels, **custom_layers}
-        year_select = pn.widgets.Select(name="Year / Layer", options=year_options)
-        # Widgets
-        # year_select = pn.widgets.Select(name="Year", options=years.tolist())
-        gen_select = pn.widgets.Select(name="Generation", options=generations.tolist())
+        # Place custom_layers first in the options
+        custom_layers = {"Mean (All Years)": "mean", "Range (All Years)": "range"}
+        # Combine so that mean/range are at the top, followed by years
+        year_options = {**custom_layers, **year_labels}
+        # Set "mean" as the default value for the year/layer select
+        year_select = pn.widgets.Select(
+            name="Year / Layer", options=year_options, value="mean"
+        )
+        gen_select = pn.widgets.Select(
+            name="Generation",
+            options=generations.tolist(),
+            value=generations[2] if len(generations) > 2 else generations[0],
+        )
         alpha_slider = pn.widgets.FloatSlider(
             name="Transparency", start=0.0, end=1.0, step=0.05, value=0.8
         )
 
+        # Precompute clim per generation for mean and range
+        clim_per_gen = {}
+        clim_range_per_gen = {}
+        for gen in generations:
+            gen_data = da.sel(generation=gen)
+            clim_per_gen[gen.item() if hasattr(gen, "item") else gen] = (
+                float(gen_data.min()),
+                float(gen_data.max()),
+            )
+            range_data = precomputed["Range of Likely Completion Dates"].sel(
+                generation=gen
+            )
+            clim_range_per_gen[gen.item() if hasattr(gen, "item") else gen] = (
+                float(range_data.min()),
+                float(range_data.max()),
+            )
+
         # Plotting function
         def make_plot(year_or_stat, generation, alpha):
+            # Ensure generation is the correct type for lookup
+            gen_key = generation.item() if hasattr(generation, "item") else generation
 
             if year_or_stat == "mean":
-                # Use the mean of all years
                 sliced = precomputed["Likely Completion Date"].sel(
                     generation=generation
                 )
+                clim = clim_per_gen[gen_key]
+                cmap = "Viridis"
+            elif year_or_stat == "range":
+                sliced = precomputed["Range of Likely Completion Dates"].sel(
+                    generation=generation
+                )
+                clim = clim_range_per_gen[gen_key]
+                cmap = "Magma"
             else:
                 sliced = da.sel(year=year_or_stat, generation=generation)
+                clim = clim_per_gen[gen_key]
+                cmap = "Viridis"
 
             img = gv.Image(
                 sliced, kdims=["longitude", "latitude"], vdims=[sliced.name]
             ).opts(
-                cmap="Viridis",
+                cmap=cmap,
                 alpha=alpha,
                 colorbar=True,
                 width=1000,
                 height=900,
                 tools=["hover"],
-                clim=(float(da.min()), float(da.max())),
+                clim=clim,
                 # projection=gv.plotting.bokeh.CRS.PlateCarree(),
             )
             tiles = gv.tile_sources.OSM.opts(alpha=1.0)
@@ -153,11 +192,13 @@ class FfliesOutput:
             alpha=alpha_slider,
         )
         layout = pn.Column(
-            f"## {self.species} Detection Visualization",
+            f"## {self.species} Detection on {self.detection_date} at ({self.latitude}, {self.longitude})",
             pn.Row(year_select, gen_select, alpha_slider),
             plot_pane,
         )
 
+        if save_path is not None:
+            layout.save(save_path, embed=True)
         return layout  # Can call .show(), .save(), or .servable() on this
 
     def _extract_point(self):

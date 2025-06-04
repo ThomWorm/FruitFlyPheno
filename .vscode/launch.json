@@ -4,7 +4,12 @@
             "type": "debugpy",
             "request": "launch",
             "name": "Launch Main Program",
-            "program": "${workspaceFolder}/fflies/main.py"
+            "program": "${workspaceFolder}/fflies/main.py",
+            "args": [
+                "--input",
+                "config/sample_user_input_plotting.json",
+                "--plot"
+            ]
         }
     ]
 }

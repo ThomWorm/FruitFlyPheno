@@ -17,7 +17,7 @@ import json
 import time
 
 
-def main(input_json=None, plot=False):
+def main(input_json=None, plot=False, save_plot=False, plot_save_path=None):
     # Load configuration
     config = load_config("../config/settings.yaml")
     if input_json == "test" or input_json is None:
@@ -65,6 +65,8 @@ def main(input_json=None, plot=False):
             start_date = pd.Timestamp(year=start_year, month=1, day=1).strftime(
                 "%Y-%m-%d"
             )
+            print("Fetching weather data for:", input["species"])
+            print("Start date:", start_date)
             weather_data = weather.fetch_data_gridmet(
                 latitude=input["latitude"],
                 longitude=input["longitude"],
@@ -73,32 +75,40 @@ def main(input_json=None, plot=False):
             )
             # Ensure t is a single chunk for apply_ufunc compatibility
             weather_data = weather_data.load()
+            # convert weather data from kelvin to celsius
+            weather_data["tmax"] = weather_data["tmax"] - 273.15
+            weather_data["tmin"] = weather_data["tmin"] - 273.15
+            print("Weather data loaded")
         # ----------------------------
         # 2. MODELLING
         # ----------------------------
-        print(type(weather_data))
-        print(weather_data.chunks)
+        print("Running spatial wrapper for:", input["species"])
+        print("Detection date:", input["detection_date"])
         test_idx = (
             weather_data["t"].get_index("t").get_loc(input["detection_date"])
         )  # TODO double check that loc off of a string works _ I think it does
         detection_date = pd.to_datetime(input["detection_date"])
-        print("tmax chunks:", weather_data["tmax"].chunks)
-        print("tmin chunks:", weather_data["tmin"].chunks)
         results = fflies_spatial_wrapper(
             weather_data["tmax"], weather_data["tmin"], test_idx, species_params
         )
         all_historical = 1
         if results["incomplete_development"].any():
+            print("Incomplete development detected, running prediction wrapper.")
+            detection_dt = pd.to_datetime(input["detection_date"])
             results = fflies_prediction_wrapper(
                 current_data=weather_data.isel(t=slice(test_idx, None)),
                 historical_data=weather_data,
                 stages=species_params,
                 detection_date=detection_date,
                 generations=input["generations"],
-                start_year=2021,  # TODO replace with years calculated from the data
-                end_year=2024,
+                start_year=detection_dt.year
+                - 20,  # TODO replace with years calculated from the data
+                end_year=detection_dt.year
+                - 1,  # TODO replace with years calculated from the data
             )
             all_historical = 0
+        else:
+            print("No incomplete development detected, using spatial results.")
         # ----------------------------
         # 3. POST-PROCESSING
         # ----------------------------
@@ -112,7 +122,13 @@ def main(input_json=None, plot=False):
             longitude=input["longitude"],
         )
         if plot:
-            plot_panel = output.plot()
+            save_path = None
+            if save_plot:
+                if plot_save_path:
+                    save_path = plot_save_path
+                else:
+                    save_path = f"{input['species']}_results_plot.html"
+            plot_panel = output.plot(save_path=save_path)
             server = plot_panel.show(open=True)
             try:
                 while True:
@@ -136,7 +152,23 @@ if __name__ == "__main__":
         action="store_true",
         help="Flag to plot results instead of saving JSON.",
     )
+    parser.add_argument(
+        "--save-plot",
+        action="store_true",
+        help="Flag to save the plot as an HTML file (only used with --plot).",
+    )
+    parser.add_argument(
+        "--plot-save-path",
+        type=str,
+        default=None,
+        help="Path to save the plot HTML file (used with --save-plot).",
+    )
     args = parser.parse_args()
 
     # If --input is not provided, pass None to main (will use test input)
-    main(input_json=args.input, plot=args.plot)
+    main(
+        input_json=args.input,
+        plot=args.plot,
+        save_plot=args.save_plot,
+        plot_save_path=args.plot_save_path,
+    )
