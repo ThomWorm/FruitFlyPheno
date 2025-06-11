@@ -43,13 +43,13 @@
     "stages": [
       {
         "name": "egg",
-        "UTT": 35,
+        "UTT": 999,
         "LTT": 10,
         "dd_threshold": 100
       },
       {
         "name": "larva",
-        "UTT": 38,
+        "UTT": 999,
         "LTT": 12,
         "dd_threshold": 200
       },

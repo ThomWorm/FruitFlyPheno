@@ -1,0 +1,18 @@
+{
+  "detection_date": "2023-06-15",
+  "species": "medfly",
+  "latitude": 34.63,
+  "longitude": -117.338321,
+  "generations": {
+    "F1": {
+      "likely_completion_date": "2023-07-16"
+    },
+    "F2": {
+      "likely_completion_date": "2023-08-04"
+    },
+    "F3": {
+      "likely_completion_date": "2023-08-29",
+      "latest_likely_completion_date": "2023-08-29"
+    }
+  }
+}

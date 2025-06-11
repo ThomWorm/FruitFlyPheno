@@ -17,7 +17,21 @@ import json
 import time
 
 
-def main(input_json=None, plot=False, save_plot=False, plot_save_path=None):
+def main(input_json=None, plot=False, save_plot=None, print_json=False):
+    """
+    Main entry point for FruitFlyPheno pipeline.
+
+    Parameters:
+    -----------
+    input_json : str or None
+        Path to input JSON file, or 'test' to use test input. If None, uses test input.
+    plot : bool
+        If True, display interactive plot inline (Colab/Jupyter) or in browser (local).
+    save_plot : str or None
+        If provided, saves the plot as an HTML file to this path. If None, does not save.
+    print_json : bool
+        If True, prints the output JSON to the terminal in a formatted, readable table.
+    """
     # Load configuration
     config = load_config("../config/settings.yaml")
     if input_json == "test" or input_json is None:
@@ -27,7 +41,7 @@ def main(input_json=None, plot=False, save_plot=False, plot_save_path=None):
         with open(input_json, "r") as f:
             inputs = json.load(f)
 
-        # CLI/GUI/web form returns a list of dicts
+    # CLI/GUI/web form returns a list of dicts
     weather = WeatherDataHandler(cache_dir=config["weather"]["cache_dir"])
 
     if plot and len(inputs) > 1:
@@ -82,8 +96,6 @@ def main(input_json=None, plot=False, save_plot=False, plot_save_path=None):
         # ----------------------------
         # 2. MODELLING
         # ----------------------------
-        print("Running spatial wrapper for:", input["species"])
-        print("Detection date:", input["detection_date"])
         test_idx = (
             weather_data["t"].get_index("t").get_loc(input["detection_date"])
         )  # TODO double check that loc off of a string works _ I think it does
@@ -93,7 +105,7 @@ def main(input_json=None, plot=False, save_plot=False, plot_save_path=None):
         )
         all_historical = 1
         if results["incomplete_development"].any():
-            print("Incomplete development detected, running prediction wrapper.")
+            print("Incomplete development detected, running prediction.")
             detection_dt = pd.to_datetime(input["detection_date"])
             results = fflies_prediction_wrapper(
                 current_data=weather_data.isel(t=slice(test_idx, None)),
@@ -108,7 +120,7 @@ def main(input_json=None, plot=False, save_plot=False, plot_save_path=None):
             )
             all_historical = 0
         else:
-            print("No incomplete development detected, using spatial results.")
+            print("No incomplete development detected, using historical results.")
         # ----------------------------
         # 3. POST-PROCESSING
         # ----------------------------
@@ -122,22 +134,63 @@ def main(input_json=None, plot=False, save_plot=False, plot_save_path=None):
             longitude=input["longitude"],
         )
         if plot:
-            save_path = None
-            if save_plot:
-                if plot_save_path:
-                    save_path = plot_save_path
-                else:
-                    save_path = f"{input['species']}_results_plot.html"
+            save_path = save_plot if save_plot else None
             plot_panel = output.plot(save_path=save_path)
-            server = plot_panel.show(open=True)
+            # For Colab/Jupyter, display inline; for local, show in browser
             try:
-                while True:
-                    time.sleep(0.1)
-            except KeyboardInterrupt:
-                server.stop()
+                import google.colab
+                from IPython.display import display
+
+                pn.extension("bokeh", "plotly", "ipywidgets")
+                pn.output_notebook()
+                display(plot_panel)
+            except ImportError:
+                try:
+                    from IPython import get_ipython
+                    from IPython.display import display
+
+                    if get_ipython() is not None:
+                        pn.extension("bokeh", "plotly", "ipywidgets")
+                        pn.output_notebook()
+                        display(plot_panel)
+                    else:
+                        raise RuntimeError
+                except Exception:
+                    server = plot_panel.show(open=True)
+                    try:
+                        while True:
+                            time.sleep(0.1)
+                    except KeyboardInterrupt:
+                        server.stop()
         else:
             # Output JSON file per input
-            output.create_json(filename=f"{input['species']}_results.json")
+            output_json = output.create_json()
+            with open(f"{input['species']}_results.json", "w") as f:
+                json.dump(output_json, f, indent=2)
+            if print_json:
+                try:
+                    from tabulate import tabulate
+
+                    def dict_to_table(d):
+                        # Flatten dict for tabulate
+                        rows = []
+                        for k, v in d.items():
+                            if isinstance(v, dict):
+                                for k2, v2 in v.items():
+                                    if isinstance(v2, dict):
+                                        for k3, v3 in v2.items():
+                                            rows.append([f"{k}.{k2}.{k3}", v3])
+                                    else:
+                                        rows.append([f"{k}.{k2}", v2])
+                            else:
+                                rows.append([k, v])
+                        return rows
+
+                    print(
+                        tabulate(dict_to_table(output_json), headers=["Key", "Value"])
+                    )
+                except ImportError:
+                    print(json.dumps(output_json, indent=2))
 
 
 if __name__ == "__main__":
@@ -145,23 +198,26 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Run FruitFlyPheno main pipeline.")
     parser.add_argument(
-        "--input", type=str, default=None, help="Path to input JSON file."
+        "--input",
+        type=str,
+        default=None,
+        help="Path to input JSON file. If not provided, uses test input.",
     )
     parser.add_argument(
         "--plot",
         action="store_true",
-        help="Flag to plot results instead of saving JSON.",
+        help="Flag to plot results instead of saving JSON. If used in Colab/Jupyter, displays inline.",
     )
     parser.add_argument(
         "--save-plot",
-        action="store_true",
-        help="Flag to save the plot as an HTML file (only used with --plot).",
-    )
-    parser.add_argument(
-        "--plot-save-path",
         type=str,
         default=None,
-        help="Path to save the plot HTML file (used with --save-plot).",
+        help="If provided, saves the plot as an HTML file to this path (only used with --plot).",
+    )
+    parser.add_argument(
+        "--print-json",
+        action="store_true",
+        help="Print output JSON to terminal in a formatted, readable table.",
     )
     args = parser.parse_args()
 
@@ -170,5 +226,5 @@ if __name__ == "__main__":
         input_json=args.input,
         plot=args.plot,
         save_plot=args.save_plot,
-        plot_save_path=args.plot_save_path,
+        print_json=args.print_json,
     )

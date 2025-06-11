@@ -1,20 +1,33 @@
-[   {
-        "user_id": "user_002",
-        "coordinates": {
-            "latitude": 34.63,
-            "longitude": -117.338321
-        },
-        "date": "2025-02-20",
-        "species": "mexfly"
+[
+    {
+        "user_id": "user_001",
+        
+        "latitude": 34.63, 
+        "longitude": -117.338321
+        ,
+        "detection_date": "2025-02-20",
+        "species": "mexfly",
+        "generations": 3
     },
     {
         "user_id": "user_001",
-        "coordinates": {
-            "latitude": 34.63, 
-            "longitude": -117.338321
-        },
-        "date": "2023-06-15",
-        "species": "off"
+        
+        "latitude": 34.63, 
+        "longitude": -117.338321
+        ,
+        "detection_date": "2023-06-15",
+        "species": "off",
+        "generations": 3
+    },
+    {
+        "user_id": "user_001",
+        
+        "latitude": 34.63, 
+        "longitude": -117.338321
+        ,
+        "detection_date": "2023-06-15",
+        "species": "mulstistage_example",
+        "generations": 3
     }
     
 ]

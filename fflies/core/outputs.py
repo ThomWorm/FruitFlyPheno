@@ -4,6 +4,7 @@ import json
 import matplotlib.pyplot as plt
 from pathlib import Path
 from datetime import timedelta
+import datetime  # Add this import
 
 # ---
 import panel as pn
@@ -28,10 +29,15 @@ class FfliesOutput:
         """
         Return the output JSON structure as a dictionary instead of writing to a file.
         """
+        # Convert detection_date string to datetime.date
+        detection_date_dt = datetime.datetime.strptime(
+            self.detection_date, "%Y-%m-%d"
+        ).date()
         # ==============
-        # extract mean completions for each generation
+        # extract mean and max completions for each generation
         # ==============
         mean_completion_dates = []
+        max_completion_dates = []
         for gen_i in range(
             1, len(self.data["generation"]) + 1
         ):  # Dynamically adjust range based on available generations
@@ -41,23 +47,33 @@ class FfliesOutput:
                 generation=gen_i,
                 method="nearest",
             )
-            generation_data.values
-
-            mean_duration = generation_data.values.mean()
+            # Mean
+            mean_duration = generation_data.values.mean().astype(int)
+            mean_duration = int(mean_duration)
             mean_completion_date = (
-                self.detection_date + timedelta(days=mean_duration)
+                detection_date_dt + timedelta(days=mean_duration)
             ).strftime("%Y-%m-%d")
             mean_completion_dates.append(mean_completion_date)
+            # Max
+            max_duration = generation_data.values.max().astype(int)
+            max_duration = int(max_duration)
+            max_completion_date = (
+                detection_date_dt + timedelta(days=max_duration)
+            ).strftime("%Y-%m-%d")
+            max_completion_dates.append(max_completion_date)
         # ==============
         # calculate latest likely completion date
         # ==============
+        """
         if self.all_historical == 0:
             latest_completion_date = self._MCMC_latest_completion_date()
         else:
             latest_completion_date = self.data["days_to_completion"].max().values
+            latest_completion_date = int(latest_completion_date)
             latest_completion_date = (
-                self.detection_date + timedelta(days=latest_completion_date)
+                detection_date_dt + timedelta(days=latest_completion_date)
             ).strftime("%Y-%m-%d")
+        """
         # ==============
         # Create the JSON structure
         # ==============
@@ -67,14 +83,14 @@ class FfliesOutput:
             "latitude": self.latitude,
             "longitude": self.longitude,
             "generations": {
-                f"F{i+1}": {
-                    "mean_completion_days": mean_completion_dates[i],
-                    "latest_completion_date": (
-                        latest_completion_date
-                        if i == len(mean_completion_dates) - 1
-                        else None
-                    ),
-                }
+                f"F{i+1}": (
+                    {
+                        "likely_completion_date": mean_completion_dates[i],
+                        "latest_likely_completion_date": max_completion_dates[i],
+                    }
+                    if i == len(mean_completion_dates) - 1
+                    else {"likely_completion_date": mean_completion_dates[i]}
+                )
                 for i in range(len(mean_completion_dates))
             },
         }
@@ -193,8 +209,11 @@ class FfliesOutput:
         )
         layout = pn.Column(
             f"## {self.species} Detection on {self.detection_date} at ({self.latitude}, {self.longitude})",
-            pn.Row(year_select, gen_select, alpha_slider),
+            pn.Row(
+                year_select, gen_select, alpha_slider, sizing_mode="stretch_width"
+            ),  # Set sizing_mode here
             plot_pane,
+            sizing_mode="stretch_width",  # Already set here
         )
 
         if save_path is not None:
@@ -217,3 +236,19 @@ class FfliesOutput:
         # This is a placeholder and should be replaced with actual MCMC logic
         # TODO implement MCMC logic
         return self.data["days_to_completion"].max().values
+
+
+def serve_panel(panel_obj, port=5006, open_browser=True):
+    """
+    Serve a Panel object using panel.serve.
+
+    Parameters:
+    -----------
+    panel_obj : pn.Column or pn.panel
+        The Panel object to serve.
+    port : int
+        The port to serve on.
+    open_browser : bool
+        Whether to open the browser automatically.
+    """
+    pn.serve(panel_obj, port=port, show=open_browser)
