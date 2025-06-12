@@ -134,7 +134,7 @@ class FfliesOutput:
         # Combine so that mean/range are at the top, followed by years
         year_options = {**custom_layers, **year_labels}
         # Set "mean" as the default value for the year/layer select
-        select_styles = {"color": "#FFD700"}  # Gold text for good contrast
+        select_styles = {"color": "#FF3C00"}  # Gold text for good contrast
 
         year_select = pn.widgets.Select(
             name="Year / Layer",
