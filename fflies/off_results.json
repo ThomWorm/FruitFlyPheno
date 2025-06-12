@@ -1,18 +1,18 @@
 {
-  "detection_date": "2023-06-15",
+  "detection_date": "2025-01-27",
   "species": "off",
-  "latitude": 34.63,
-  "longitude": -117.338321,
+  "latitude": 37.523,
+  "longitude": -121.961,
   "generations": {
     "F1": {
-      "likely_completion_date": "2023-07-21"
+      "likely_completion_date": "2025-05-23"
     },
     "F2": {
-      "likely_completion_date": "2023-08-21"
+      "likely_completion_date": "2025-07-22"
     },
     "F3": {
-      "likely_completion_date": "2023-09-29",
-      "latest_likely_completion_date": "2023-09-29"
+      "likely_completion_date": "2025-09-13",
+      "latest_likely_completion_date": "2025-09-24"
     }
   }
 }
