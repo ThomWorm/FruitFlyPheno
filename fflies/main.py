@@ -17,6 +17,24 @@ import json
 import time
 
 
+def is_notebook():
+    """
+    Returns True if running in a Jupyter/Colab notebook, else False.
+    """
+    try:
+        from IPython import get_ipython
+
+        shell = get_ipython().__class__.__name__
+        if shell == "ZMQInteractiveShell":
+            return True  # Jupyter notebook or qtconsole
+        elif shell == "Shell":
+            return True  # Google Colab
+        else:
+            return False  # Other type (likely terminal)
+    except Exception:
+        return False
+
+
 def main(input_json=None, plot=False, save_plot=None, print_json=False):
     """
     Main entry point for FruitFlyPheno pipeline.
@@ -79,8 +97,14 @@ def main(input_json=None, plot=False, save_plot=None, print_json=False):
             start_date = pd.Timestamp(year=start_year, month=1, day=1).strftime(
                 "%Y-%m-%d"
             )
-            print("Fetching weather data for:", input["species"])
-            print("Start date:", start_date)
+            print(
+                "Fetching weather data for:",
+                input["species"],
+                "from",
+                start_date,
+                "to now",
+            )
+
             weather_data = weather.fetch_data_gridmet(
                 latitude=input["latitude"],
                 longitude=input["longitude"],
@@ -136,32 +160,19 @@ def main(input_json=None, plot=False, save_plot=None, print_json=False):
         if plot:
             save_path = save_plot if save_plot else None
             plot_panel = output.plot(save_path=save_path)
-            # For Colab/Jupyter, display inline; for local, show in browser
-            try:
-                import google.colab
+            # Always load the Panel extension before plotting
+            pn.extension("bokeh")
+            if is_notebook():
                 from IPython.display import display
 
-                pn.extension("bokeh", "plotly", "ipywidgets")
-                pn.output_notebook()
                 display(plot_panel)
-            except ImportError:
+            else:
+                server = plot_panel.show(open=True)
                 try:
-                    from IPython import get_ipython
-                    from IPython.display import display
-
-                    if get_ipython() is not None:
-                        pn.extension("bokeh", "plotly", "ipywidgets")
-                        pn.output_notebook()
-                        display(plot_panel)
-                    else:
-                        raise RuntimeError
-                except Exception:
-                    server = plot_panel.show(open=True)
-                    try:
-                        while True:
-                            time.sleep(0.1)
-                    except KeyboardInterrupt:
-                        server.stop()
+                    while True:
+                        time.sleep(0.1)
+                except KeyboardInterrupt:
+                    server.stop()
         else:
             # Output JSON file per input
             output_json = output.create_json()

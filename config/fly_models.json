@@ -39,6 +39,16 @@
       }
     ]
   },
+  "queensland": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 36,
+        "LTT": 12,
+        "dd_threshold": 380
+      }
+    ]
+  },
   "multistage_example": {
     "stages": [
       {

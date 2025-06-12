@@ -12,6 +12,7 @@ dependencies = [
     "geoviews>=1.14.0",
     "holoviews>=1.20.2",
     "ipykernel>=6.29.5",
+    "jupyter-bokeh>=4.0.5",
     "matplotlib>=3.10.1",
     "pymc>=5.22.0",
     "requests>=2.32.3",
