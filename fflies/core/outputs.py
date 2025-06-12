@@ -134,16 +134,27 @@ class FfliesOutput:
         # Combine so that mean/range are at the top, followed by years
         year_options = {**custom_layers, **year_labels}
         # Set "mean" as the default value for the year/layer select
+        select_styles = {"color": "#FFD700"}  # Gold text for good contrast
+
         year_select = pn.widgets.Select(
-            name="Year / Layer", options=year_options, value="mean"
+            name="Year / Layer",
+            options=year_options,
+            value="mean",
+            styles=select_styles,
         )
         gen_select = pn.widgets.Select(
             name="Generation",
             options=generations.tolist(),
             value=generations[2] if len(generations) > 2 else generations[0],
+            styles=select_styles,
         )
         alpha_slider = pn.widgets.FloatSlider(
-            name="Transparency", start=0.0, end=1.0, step=0.05, value=0.8
+            name="Transparency",
+            start=0.0,
+            end=1.0,
+            step=0.05,
+            value=0.8,
+            styles=select_styles,
         )
 
         # Precompute clim per generation for mean and range
