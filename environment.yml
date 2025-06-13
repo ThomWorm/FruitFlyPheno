@@ -1,0 +1,27 @@
+name: mymodel
+channels:
+- conda-forge
+dependencies:
+- python=3.10
+- numpy
+- pandas
+- matplotlib
+- xarray
+- netcdf4
+- h5py
+- cartopy
+- pyproj
+- shapely
+- dask
+- bokeh
+- holoviews
+- panel
+- ipywidgets
+- jupyterlab
+- notebook
+- aiohttp
+- pip
+- pip:
+  - aiohappyeyeballs
+  - geoviews
+  - xarray-einstats
