@@ -1,0 +1,1 @@
+uv run fflies/main.py --input config/sample_user_input_plotting.json --plot --save-plot  saves/fremont.html

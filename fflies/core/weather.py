@@ -44,6 +44,7 @@ class WeatherDataHandler:
             self.gridmet_urls,
             combine="by_coords",
             chunks={"lat": 50, "lon": 50, "day": -1},
+            engine="h5netcdf",
         )
         # Remove CRS dimension if present
 
