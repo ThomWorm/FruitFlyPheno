@@ -13,6 +13,8 @@ import pandas as pd
 import panel as pn
 import sys
 import json
+import pickle
+import os
 
 import time
 
@@ -35,7 +37,7 @@ def is_notebook():
         return False
 
 
-def main(input_json=None, plot=False, save_plot=None, print_json=False):
+def main(input_json=None, plot=False, save_plot=None, print_json=False, use_pickle=False):
     """
     Main entry point for FruitFlyPheno pipeline.
 
@@ -89,14 +91,19 @@ def main(input_json=None, plot=False, save_plot=None, print_json=False):
         # ----------------------------
         # Set start_date to Jan 1st, 20 years before detection_date
 
-        if input_json is None:
-            weather_data = weather.load_cached()
+        detection_dt = pd.to_datetime(input["detection_date"])
+        start_year = detection_dt.year - 20
+        start_date = pd.Timestamp(year=start_year, month=1, day=1).strftime(
+            "%Y-%m-%d"
+        )
+        pickle_filename = f"{input['species']}_results.pkl"
+        results = None
+        all_historical = 1  # Default to historical unless prediction is run
+        if use_pickle and os.path.exists(pickle_filename):
+            with open(pickle_filename, "rb") as pf:
+                results = pickle.load(pf)
+            print(f"Loaded model results from {pickle_filename}")
         else:
-            detection_dt = pd.to_datetime(input["detection_date"])
-            start_year = detection_dt.year - 20
-            start_date = pd.Timestamp(year=start_year, month=1, day=1).strftime(
-                "%Y-%m-%d"
-            )
             print(
                 "Fetching weather data for:",
                 input["species"],
@@ -104,7 +111,6 @@ def main(input_json=None, plot=False, save_plot=None, print_json=False):
                 start_date,
                 "to now",
             )
-
             weather_data = weather.fetch_data_gridmet(
                 latitude=input["latitude"],
                 longitude=input["longitude"],
@@ -117,34 +123,35 @@ def main(input_json=None, plot=False, save_plot=None, print_json=False):
             weather_data["tmax"] = weather_data["tmax"] - 273.15
             weather_data["tmin"] = weather_data["tmin"] - 273.15
             print("Weather data loaded")
-        # ----------------------------
-        # 2. MODELLING
-        # ----------------------------
-        test_idx = (
-            weather_data["t"].get_index("t").get_loc(input["detection_date"])
-        )  # TODO double check that loc off of a string works _ I think it does
-        detection_date = pd.to_datetime(input["detection_date"])
-        results = fflies_spatial_wrapper(
-            weather_data["tmax"], weather_data["tmin"], test_idx, species_params
-        )
-        all_historical = 1
-        if results["incomplete_development"].any():
-            print("Incomplete development detected, running prediction.")
-            detection_dt = pd.to_datetime(input["detection_date"])
-            results = fflies_prediction_wrapper(
-                current_data=weather_data.isel(t=slice(test_idx, None)),
-                historical_data=weather_data,
-                stages=species_params,
-                detection_date=detection_date,
-                generations=input["generations"],
-                start_year=detection_dt.year
-                - 20,  # TODO replace with years calculated from the data
-                end_year=detection_dt.year
-                - 1,  # TODO replace with years calculated from the data
+            # ----------------------------
+            # 2. MODELLING
+            # ----------------------------
+            test_idx = (
+                weather_data["t"].get_index("t").get_loc(input["detection_date"])
+            )  # TODO double check that loc off of a string works _ I think it does
+            detection_date = pd.to_datetime(input["detection_date"])
+            results = fflies_spatial_wrapper(
+                weather_data["tmax"], weather_data["tmin"], test_idx, species_params
             )
-            all_historical = 0
-        else:
-            print("No incomplete development detected, using historical results.")
+            if results["incomplete_development"].any():
+                print("Incomplete development detected, running prediction.")
+                detection_dt = pd.to_datetime(input["detection_date"])
+                results = fflies_prediction_wrapper(
+                    current_data=weather_data.isel(t=slice(test_idx, None)),
+                    historical_data=weather_data,
+                    stages=species_params,
+                    detection_date=detection_date,
+                    generations=input["generations"],
+                    start_year=detection_dt.year - 20,
+                    end_year=detection_dt.year - 1,
+                )
+                all_historical = 0
+            else:
+                print("No incomplete development detected, using historical results.")
+            if use_pickle:
+                with open(pickle_filename, "wb") as pf:
+                    pickle.dump(results, pf)
+                print(f"Saved model results to {pickle_filename}")
         # ----------------------------
         # 3. POST-PROCESSING
         # ----------------------------
@@ -167,12 +174,9 @@ def main(input_json=None, plot=False, save_plot=None, print_json=False):
 
                 display(plot_panel)
             else:
-                server = plot_panel.show(open=True)
-                try:
-                    while True:
-                        time.sleep(0.1)
-                except KeyboardInterrupt:
-                    server.stop()
+                from core.outputs import serve_panel
+                serve_panel(plot_panel, port=5006, open_browser=True)
+                print("Panel server started on http://localhost:5006. Press Ctrl+C to stop.")
         else:
             # Output JSON file per input
             output_json = output.create_json()
@@ -230,6 +234,11 @@ if __name__ == "__main__":
         action="store_true",
         help="Print output JSON to terminal in a formatted, readable table.",
     )
+    parser.add_argument(
+        "--use-pickle",
+        action="store_true",
+        help="Load/save model results from/to a pickle file for faster plotting development."
+    )
     args = parser.parse_args()
 
     # If --input is not provided, pass None to main (will use test input)
@@ -238,4 +247,5 @@ if __name__ == "__main__":
         plot=args.plot,
         save_plot=args.save_plot,
         print_json=args.print_json,
+        use_pickle=args.use_pickle,
     )

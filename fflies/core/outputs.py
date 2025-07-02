@@ -118,118 +118,17 @@ class FfliesOutput:
             if var_name
             else next(iter(self.data.data_vars.values()))
         )
-        precomputed = {
-            "Likely Completion Date": da.mean(dim="year"),
-            "Range of Likely Completion Dates": da.max(dim="year") - da.min(dim="year"),
-        }
+        from .dashboard import create_fflies_dashboard
 
-        # Ensure lat/lon are sorted
-        da = da.sortby(["latitude", "longitude"])
-
-        years = da.coords["year"].values
-        generations = da.coords["generation"].values
-        year_labels = {f"sim{y}": y for y in da.coords["year"].values}
-        # Place custom_layers first in the options
-        custom_layers = {"Mean (All Years)": "mean", "Range (All Years)": "range"}
-        # Combine so that mean/range are at the top, followed by years
-        year_options = {**custom_layers, **year_labels}
-        # Set "mean" as the default value for the year/layer select
-        select_styles = {"color": "#FFD700"}  # Gold text for good contrast
-
-        year_select = pn.widgets.Select(
-            name="Year / Layer",
-            options=year_options,
-            value="mean",
-            styles=select_styles,
+        return create_fflies_dashboard(
+            da=da,
+            species=self.species,
+            detection_date=self.detection_date,
+            latitude=self.latitude,
+            longitude=self.longitude,
+            generations=da.coords["generation"].values,
+            save_path=save_path,
         )
-        gen_select = pn.widgets.Select(
-            name="Generation",
-            options=generations.tolist(),
-            value=generations[2] if len(generations) > 2 else generations[0],
-            styles=select_styles,
-        )
-        alpha_slider = pn.widgets.FloatSlider(
-            name="Transparency",
-            start=0.0,
-            end=1.0,
-            step=0.05,
-            value=0.8,
-            styles=select_styles,
-        )
-
-        # Precompute clim per generation for mean and range
-        clim_per_gen = {}
-        clim_range_per_gen = {}
-        for gen in generations:
-            gen_data = da.sel(generation=gen)
-            clim_per_gen[gen.item() if hasattr(gen, "item") else gen] = (
-                float(gen_data.min()),
-                float(gen_data.max()),
-            )
-            range_data = precomputed["Range of Likely Completion Dates"].sel(
-                generation=gen
-            )
-            clim_range_per_gen[gen.item() if hasattr(gen, "item") else gen] = (
-                float(range_data.min()),
-                float(range_data.max()),
-            )
-
-        # Plotting function
-        def make_plot(year_or_stat, generation, alpha):
-            # Ensure generation is the correct type for lookup
-            gen_key = generation.item() if hasattr(generation, "item") else generation
-
-            if year_or_stat == "mean":
-                sliced = precomputed["Likely Completion Date"].sel(
-                    generation=generation
-                )
-                clim = clim_per_gen[gen_key]
-                cmap = "Viridis"
-            elif year_or_stat == "range":
-                sliced = precomputed["Range of Likely Completion Dates"].sel(
-                    generation=generation
-                )
-                clim = clim_range_per_gen[gen_key]
-                cmap = "Magma"
-            else:
-                sliced = da.sel(year=year_or_stat, generation=generation)
-                clim = clim_per_gen[gen_key]
-                cmap = "Viridis"
-
-            img = gv.Image(
-                sliced, kdims=["longitude", "latitude"], vdims=[sliced.name]
-            ).opts(
-                cmap=cmap,
-                alpha=alpha,
-                colorbar=True,
-                width=1000,
-                height=900,
-                tools=["hover"],
-                clim=clim,
-                # projection=gv.plotting.bokeh.CRS.PlateCarree(),
-            )
-            tiles = gv.tile_sources.OSM.opts(alpha=1.0)
-            return tiles * img
-
-        # Bind widgets
-        plot_pane = pn.bind(
-            make_plot,
-            year_or_stat=year_select,
-            generation=gen_select,
-            alpha=alpha_slider,
-        )
-        layout = pn.Column(
-            f"## {self.species} Detection on {self.detection_date} at ({self.latitude}, {self.longitude})",
-            pn.Row(
-                year_select, gen_select, alpha_slider, sizing_mode="stretch_width"
-            ),  # Set sizing_mode here
-            plot_pane,
-            sizing_mode="stretch_width",  # Already set here
-        )
-
-        if save_path is not None:
-            layout.save(save_path, embed=True)
-        return layout  # Can call .show(), .save(), or .servable() on this
 
     def _extract_point(self):
         """
@@ -262,4 +161,4 @@ def serve_panel(panel_obj, port=5006, open_browser=True):
     open_browser : bool
         Whether to open the browser automatically.
     """
-    pn.serve(panel_obj, port=port, show=open_browser)
+    pn.serve(panel_obj, port=port, show=open_browser,threaded = True, blocking=False)
