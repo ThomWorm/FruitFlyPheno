@@ -118,17 +118,53 @@ class FfliesOutput:
             if var_name
             else next(iter(self.data.data_vars.values()))
         )
-        from .dashboard import create_fflies_dashboard
+        from dashboard.dashboard import create_fflies_dashboard
 
-        return create_fflies_dashboard(
+        # Pass absolute resource paths to dashboard
+        resources_dir = Path(__file__).parent.parent / "resources"
+        resources_dir = resources_dir.resolve()
+        # favicon_path = str(resources_dir / "favicon.ico")
+        # logo_path = str(resources_dir / "logo.png")
+        # about_pdf_path = str(resources_dir / "about.pdf")
+
+        layout = create_fflies_dashboard(
             da=da,
             species=self.species,
             detection_date=self.detection_date,
             latitude=self.latitude,
             longitude=self.longitude,
             generations=da.coords["generation"].values,
-            save_path=save_path,
+            # favicon_path=favicon_path,
+            # logo_path=logo_path,
+            # about_pdf_path=about_pdf_path,
         )
+
+        if save_path:
+            # Save with custom title
+            layout.save(save_path, embed=True, title="FFLIES")
+            # Inject favicon link into HTML
+            with open(save_path, "r", encoding="utf-8") as f:
+                html = f.read()
+            # Insert favicon after <head>
+            favicon_rel_path = "resources/favicon.ico"
+            favicon_tag = (
+                f'<link rel="icon" type="image/x-icon" href="{favicon_rel_path}">\n'
+            )
+            if "<head>" in html and favicon_tag not in html:
+                html = html.replace("<head>", f"<head>\n{favicon_tag}", 1)
+                with open(save_path, "w", encoding="utf-8") as f:
+                    f.write(html)
+            if "<title>" in html:
+                html = html.replace(
+                    html[html.find("<title>") : html.find("</title>") + 8],
+                    "<title>FFLIES</title>",
+                )
+            else:
+                # If no <title>, add one after <head>
+                html = html.replace("<head>", "<head>\n<title>FFLIES</title>", 1)
+            with open(save_path, "w", encoding="utf-8") as f:
+                f.write(html)
+        return layout
 
     def _extract_point(self):
         """
@@ -161,4 +197,4 @@ def serve_panel(panel_obj, port=5006, open_browser=True):
     open_browser : bool
         Whether to open the browser automatically.
     """
-    pn.serve(panel_obj, port=port, show=open_browser,threaded = True, blocking=False)
+    pn.serve(panel_obj, port=port, show=open_browser, threaded=True, blocking=False)

@@ -10,6 +10,7 @@ from .core import (
 )
 from .io_handlers import load_config, OutputGenerator, get_user_input
 from .utils import load_species_params
+from .dashboard import dashboard
 
 # Optional but useful:
 __all__ = [
@@ -22,4 +23,5 @@ __all__ = [
     "fflies_prediction_wrapper",
     "fflies_spatial_wrapper",
     "FfliesOutput",
+    "dashboard",
 ]
