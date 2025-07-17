@@ -37,14 +37,16 @@ def is_notebook():
         return False
 
 
-def main(input_json=None, plot=False, save_plot=None, print_json=False, use_pickle=False):
+def main(
+    input_json=None, plot=False, save_plot=None, print_json=False, use_pickle=False
+):
     """
     Main entry point for FruitFlyPheno pipeline.
 
     Parameters:
     -----------
     input_json : str or None
-        Path to input JSON file, or 'test' to use test input. If None, uses test input.
+        Path to input JSON file. If None, uses test input.
     plot : bool
         If True, display interactive plot inline (Colab/Jupyter) or in browser (local).
     save_plot : str or None
@@ -54,8 +56,7 @@ def main(input_json=None, plot=False, save_plot=None, print_json=False, use_pick
     """
     # Load configuration
     config = load_config("../config/settings.yaml")
-    if input_json == "test" or input_json is None:
-        input_json = "test"
+    if input_json is None:
         inputs = get_user_input(test_mode=True)
     else:
         with open(input_json, "r") as f:
@@ -93,9 +94,7 @@ def main(input_json=None, plot=False, save_plot=None, print_json=False, use_pick
 
         detection_dt = pd.to_datetime(input["detection_date"])
         start_year = detection_dt.year - 20
-        start_date = pd.Timestamp(year=start_year, month=1, day=1).strftime(
-            "%Y-%m-%d"
-        )
+        start_date = pd.Timestamp(year=start_year, month=1, day=1).strftime("%Y-%m-%d")
         pickle_filename = f"{input['species']}_results.pkl"
         results = None
         all_historical = 1  # Default to historical unless prediction is run
@@ -175,8 +174,11 @@ def main(input_json=None, plot=False, save_plot=None, print_json=False, use_pick
                 display(plot_panel)
             else:
                 from core.outputs import serve_panel
+
                 serve_panel(plot_panel, port=5006, open_browser=True)
-                print("Panel server started on http://localhost:5006. Press Ctrl+C to stop.")
+                print(
+                    "Panel server started on http://localhost:5006. Press Ctrl+C to stop."
+                )
         else:
             # Output JSON file per input
             output_json = output.create_json()
@@ -237,7 +239,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--use-pickle",
         action="store_true",
-        help="Load/save model results from/to a pickle file for faster plotting development."
+        help="Load/save model results from/to a pickle file for faster plotting development.",
     )
     args = parser.parse_args()
 

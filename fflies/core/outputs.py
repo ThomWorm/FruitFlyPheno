@@ -99,72 +99,25 @@ class FfliesOutput:
 
     def plot(self, var_name: str = "days_to_completion", save_path: str = None):
         """
-        Interactive map-based plot of the dataset using OpenStreetMap underlay.
+        This method no longer launches the dashboard. Please use the separate dashboard app to visualize model outputs.
+        It returns the requested DataArray for external use.
 
         Parameters:
         -----------
         var_name : str, optional
-            Name of the variable in self.data to plot. If None, the first data variable is used.
+            Name of the variable in self.data to return. If None, the first data variable is used.
         save_path : str, optional
-            If provided, saves the plot as an HTML file to this path.
+            (Unused) Previously used to save a plot as HTML.
 
         Returns:
         --------
-        pn.Column
-            A Panel layout object which can be shown, served, or saved.
+        xr.DataArray
+            The requested DataArray for visualization in the dashboard app.
         """
-        da = (
-            self.data[var_name]
-            if var_name
-            else next(iter(self.data.data_vars.values()))
-        )
-        from dashboard.dashboard import create_fflies_dashboard
-
-        # Pass absolute resource paths to dashboard
-        resources_dir = Path(__file__).parent.parent / "resources"
-        resources_dir = resources_dir.resolve()
-        # favicon_path = str(resources_dir / "favicon.ico")
-        # logo_path = str(resources_dir / "logo.png")
-        # about_pdf_path = str(resources_dir / "about.pdf")
-
-        layout = create_fflies_dashboard(
-            da=da,
-            species=self.species,
-            detection_date=self.detection_date,
-            latitude=self.latitude,
-            longitude=self.longitude,
-            generations=da.coords["generation"].values,
-            # favicon_path=favicon_path,
-            # logo_path=logo_path,
-            # about_pdf_path=about_pdf_path,
-        )
-
-        if save_path:
-            # Save with custom title
-            layout.save(save_path, embed=True, title="FFLIES")
-            # Inject favicon link into HTML
-            with open(save_path, "r", encoding="utf-8") as f:
-                html = f.read()
-            # Insert favicon after <head>
-            favicon_rel_path = "resources/favicon.ico"
-            favicon_tag = (
-                f'<link rel="icon" type="image/x-icon" href="{favicon_rel_path}">\n'
-            )
-            if "<head>" in html and favicon_tag not in html:
-                html = html.replace("<head>", f"<head>\n{favicon_tag}", 1)
-                with open(save_path, "w", encoding="utf-8") as f:
-                    f.write(html)
-            if "<title>" in html:
-                html = html.replace(
-                    html[html.find("<title>") : html.find("</title>") + 8],
-                    "<title>FFLIES</title>",
-                )
-            else:
-                # If no <title>, add one after <head>
-                html = html.replace("<head>", "<head>\n<title>FFLIES</title>", 1)
-            with open(save_path, "w", encoding="utf-8") as f:
-                f.write(html)
-        return layout
+        if var_name:
+            return self.data[var_name]
+        else:
+            return next(iter(self.data.data_vars.values()))
 
     def _extract_point(self):
         """
