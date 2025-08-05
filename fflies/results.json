@@ -1,0 +1,44 @@
+[
+  {
+    "species": "mexfly",
+    "output": {
+      "detection_date": "2025-02-20",
+      "species": "mexfly",
+      "latitude": 34.63,
+      "longitude": -117.338321,
+      "generations": {
+        "F1": {
+          "likely_completion_date": "2025-06-03"
+        },
+        "F2": {
+          "likely_completion_date": "2025-07-16"
+        },
+        "F3": {
+          "likely_completion_date": "2025-08-24",
+          "latest_likely_completion_date": "2025-08-27"
+        }
+      }
+    }
+  },
+  {
+    "species": "off",
+    "output": {
+      "detection_date": "2023-06-15",
+      "species": "off",
+      "latitude": 34.63,
+      "longitude": -117.338321,
+      "generations": {
+        "F1": {
+          "likely_completion_date": "2023-07-21"
+        },
+        "F2": {
+          "likely_completion_date": "2023-08-21"
+        },
+        "F3": {
+          "likely_completion_date": "2023-09-29",
+          "latest_likely_completion_date": "2023-09-29"
+        }
+      }
+    }
+  }
+]

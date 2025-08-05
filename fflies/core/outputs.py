@@ -24,6 +24,7 @@ class FfliesOutput:
     generations: dict
     species: str
     all_historical: int
+    unique_id: str = None  # Optional unique identifier for the output
 
     def create_json(self):
         """
@@ -135,6 +136,60 @@ class FfliesOutput:
         # This is a placeholder and should be replaced with actual MCMC logic
         # TODO implement MCMC logic
         return self.data["days_to_completion"].max().values
+
+    def to_netcdf(self, path):
+        """
+        Write the output data to a NetCDF file, including all relevant metadata.
+
+        Parameters
+        ----------
+        path : str or Path
+            Path to the output NetCDF file.
+        """
+        ds = self.data.copy()
+        # Add metadata as global attributes
+        ds.attrs["detection_date"] = self.detection_date
+        ds.attrs["species"] = self.species
+        ds.attrs["latitude"] = self.latitude
+        ds.attrs["longitude"] = self.longitude
+        ds.attrs["unique_id"] = self.unique_id if self.unique_id is not None else ""
+        # Add generations as a JSON string attribute
+        ds.attrs["generations"] = json.dumps(self.generations)
+        # Write to NetCDF
+        ds.to_netcdf(path)
+
+
+def dict_to_table(d):
+    # Flatten dict for tabulate
+    rows = []
+    for k, v in d.items():
+        if isinstance(v, dict):
+            for k2, v2 in v.items():
+                if isinstance(v2, dict):
+                    for k3, v3 in v2.items():
+                        rows.append([f"{k}.{k2}.{k3}", v3])
+                else:
+                    rows.append([f"{k}.{k2}", v2])
+        else:
+            rows.append([k, v])
+    return rows
+
+
+def dict_to_table_multi(outputs):
+    rows = []
+    for entry in outputs:
+        prefix = entry["species"]
+        for k, v in entry["output"].items():
+            if isinstance(v, dict):
+                for k2, v2 in v.items():
+                    if isinstance(v2, dict):
+                        for k3, v3 in v2.items():
+                            rows.append([f"{prefix}.{k}.{k2}.{k3}", v3])
+                    else:
+                        rows.append([f"{prefix}.{k}.{k2}", v2])
+            else:
+                rows.append([f"{prefix}.{k}", v])
+    return rows
 
 
 def serve_panel(panel_obj, port=5006, open_browser=True):

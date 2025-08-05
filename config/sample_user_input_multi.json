@@ -18,16 +18,8 @@
         "detection_date": "2023-06-15",
         "species": "off",
         "generations": 3
-    },
-    {
-        "user_id": "user_001",
-        
-        "latitude": 34.63, 
-        "longitude": -117.338321
-        ,
-        "detection_date": "2023-06-15",
-        "species": "mulstistage_example",
-        "generations": 3
     }
+
+   
     
 ]

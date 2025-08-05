@@ -1,4 +1,7 @@
 import os
+
+from styles.dashboard_css import DASHBOARD_RAW_CSS
+
 import panel as pn
 import holoviews as hv
 import geoviews as gv
@@ -6,7 +9,7 @@ import datetime
 import pandas as pd
 import xarray as xr
 import numpy as np
-from .styles.dashboard_css import DASHBOARD_RAW_CSS
+from typing import Optional, Any
 
 # Set resource paths once at the top, relative to project root
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__)))
@@ -35,20 +38,34 @@ ABOUT_PDF_PATH = "resources/about.pdf"
 
 
 def create_fflies_dashboard(
-    da,
-    species,
-    detection_date,
-    latitude,
-    longitude,
-    generations,
-    save_path=None,
-    favicon_path=None,
-    logo_path=None,
-    about_pdf_path=None,
-):
+    netcdf_path: str,
+    save_path: Optional[str] = None,
+    favicon_path: Optional[str] = None,
+    logo_path: Optional[str] = None,
+    about_pdf_path: Optional[str] = None,
+) -> pn.Column:
     """
     Create the interactive dashboard layout for FfliesOutput.plot.
+
+    Args:
+        netcdf_path: Path to the NetCDF file (must contain required metadata).
+        save_path: Optional path to save the dashboard HTML.
+        favicon_path: Optional path to favicon.
+        logo_path: Optional path to logo.
+        about_pdf_path: Optional path to about PDF.
+
+    Returns:
+        Panel Column layout for the dashboard.
     """
+    ds = xr.open_dataset(netcdf_path)
+    # da = next(iter(ds.data_vars.values()))
+    da = ds["days_to_completion"]  # Use the specific variable name from the dataset
+    species = ds.attrs.get("species", "Unknown")
+    detection_date = ds.attrs.get("detection_date", "2000-01-01")
+    latitude = float(ds.attrs.get("latitude", ds.coords["latitude"].values.mean()))
+    longitude = float(ds.attrs.get("longitude", ds.coords["longitude"].values.mean()))
+    generations = ds.coords["generation"].values
+
     # Use provided paths if given, else use the relative ones
     favicon = favicon_path or FAVICON_PATH
     logo = logo_path or LOGO_PATH
@@ -166,7 +183,7 @@ def create_fflies_dashboard(
 
     def make_plot(year_or_stat, generation, low_transparency):
         gen_key = generation.item() if hasattr(generation, "item") else generation
-        alpha = 0.5 if low_transparency else 0.94
+        alpha = 0.65 if low_transparency else 0.94
 
         if year_or_stat == "most_likely":
             sliced = precomputed["Most Likely Completion Date"].sel(
@@ -498,3 +515,30 @@ def create_fflies_dashboard(
 
 # When saving the HTML, copy the resources folder next to the HTML file.
 # This way, the HTML and all resources are portable and will work on any machine or web server.
+
+
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Serve the FruitFlyPheno dashboard for a NetCDF file."
+    )
+    parser.add_argument(
+        "netcdf_path", type=str, help="Path to the NetCDF file to visualize."
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=5006,
+        help="Port to serve the dashboard on (default: 5006).",
+    )
+    args = parser.parse_args()
+
+    dashboard = create_fflies_dashboard(args.netcdf_path)
+    import panel as pn
+
+    pn.serve(dashboard, port=args.port, show=True, title="FruitFlyPheno Dashboard")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,23 @@
+[
+  {
+    "species": "off",
+    "output": {
+      "detection_date": "2025-01-27",
+      "species": "off",
+      "latitude": 37.523,
+      "longitude": -121.961,
+      "generations": {
+        "F1": {
+          "likely_completion_date": "2025-05-23"
+        },
+        "F2": {
+          "likely_completion_date": "2025-07-30"
+        },
+        "F3": {
+          "likely_completion_date": "2025-09-22",
+          "latest_likely_completion_date": "2025-09-28"
+        }
+      }
+    }
+  }
+]

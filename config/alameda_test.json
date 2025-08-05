@@ -1,0 +1,16 @@
+
+
+
+[   {
+    "user_id": "user_002",
+    "unique_id": "alameda",
+   
+    "latitude": 37.523098,
+    "longitude": -121.961233,
+   
+    "detection_date": "2025-01-27",
+    "species": "medfly",
+    "generations": 3
+}
+
+]

@@ -1,14 +1,16 @@
 # main.py
 
 
-from core import (
+from fflies.core import (
     WeatherDataHandler,
     FfliesOutput,
     fflies_prediction_wrapper,
     fflies_spatial_wrapper,
+    dict_to_table,
+    dict_to_table_multi,
 )
-from io_handlers import load_config, get_user_input
-from utils import load_species_params
+from fflies.io_handlers import load_config, get_user_input
+from fflies.utils import load_species_params
 import pandas as pd
 import panel as pn
 import sys
@@ -19,26 +21,14 @@ import os
 import time
 
 
-def is_notebook():
-    """
-    Returns True if running in a Jupyter/Colab notebook, else False.
-    """
-    try:
-        from IPython import get_ipython
-
-        shell = get_ipython().__class__.__name__
-        if shell == "ZMQInteractiveShell":
-            return True  # Jupyter notebook or qtconsole
-        elif shell == "Shell":
-            return True  # Google Colab
-        else:
-            return False  # Other type (likely terminal)
-    except Exception:
-        return False
-
-
-def main(
-    input_json=None, plot=False, save_plot=None, print_json=False, use_pickle=False
+def fflies_model(
+    input_json=None,
+    print_results=False,
+    output_path=None,
+    # use_pickle=False,
+    unique_id=None,  # unique id imported from input JSON, but can be overridden by CLI
+    exec_dashboard=False,
+    use_pickle=False,  # Load/save model results from/to a pickle file for faster plotting development
 ):
     """
     Main entry point for FruitFlyPheno pipeline.
@@ -48,31 +38,47 @@ def main(
     input_json : str or None
         Path to input JSON file. If None, uses test input.
     plot : bool
-        If True, display interactive plot inline (Colab/Jupyter) or in browser (local).
+        (Deprecated) No longer used. Plotting is handled in a separate dashboard module.
     save_plot : str or None
-        If provided, saves the plot as an HTML file to this path. If None, does not save.
-    print_json : bool
+        (Deprecated) No longer used. Plotting is handled in a separate dashboard module.
+    print_results : bool
         If True, prints the output JSON to the terminal in a formatted, readable table.
+    use_pickle : bool
+        If True, loads/saves model results from/to a pickle file for faster plotting development.
+    output_path : str
+        Path to save the output JSON file. Mandatory.
     """
     # Load configuration
     config = load_config("../config/settings.yaml")
     if input_json is None:
-        inputs = get_user_input(test_mode=True)
+        raise ValueError(
+            "No input JSON provided. Please specify an input JSON file using --input."
+        )
     else:
         with open(input_json, "r") as f:
             inputs = json.load(f)
 
+    if exec_dashboard and len(inputs) != 1:
+        raise ValueError(
+            "Dashboard execution is only supported for a single input. Please provide a single input JSON."
+        )
+
     # CLI/GUI/web form returns a list of dicts
     weather = WeatherDataHandler(cache_dir=config["weather"]["cache_dir"])
 
-    if plot and len(inputs) > 1:
-        raise ValueError("Plotting is only supported for a single input.")
+    # Remove plot-related checks
+    # if plot and len(inputs) > 1:
+    #     raise ValueError("Plotting is only supported for a single input.")
 
     for input in inputs:
         # ----------------------------
         # 1. SETUP
         # ----------------------------
         # Check if the input is valid
+
+        # Require unique_id in input
+        if not input.get("unique_id"):
+            raise ValueError("Missing required parameter: unique_id.")
 
         # Extract parameters
         detection_date = input["detection_date"]
@@ -110,11 +116,15 @@ def main(
                 start_date,
                 "to now",
             )
+            if exec_dashboard:
+                buffer = True
+            else:
+                buffer = False
             weather_data = weather.fetch_data_gridmet(
                 latitude=input["latitude"],
                 longitude=input["longitude"],
                 time_range=(start_date, pd.Timestamp.now()),
-                use_buffer=plot,  # Use buffer if plotting
+                use_buffer=buffer,  # Plotting buffer no longer relevant
             )
             # Ensure t is a single chunk for apply_ufunc compatibility
             weather_data = weather_data.load()
@@ -163,54 +173,44 @@ def main(
             latitude=input["latitude"],
             longitude=input["longitude"],
         )
-        if plot:
-            save_path = save_plot if save_plot else None
-            plot_panel = output.plot(save_path=save_path)
-            # Always load the Panel extension before plotting
-            pn.extension("bokeh")
-            if is_notebook():
-                from IPython.display import display
+        # Collect outputs for all inputs
+        if "all_outputs" not in locals():
+            all_outputs = []
+        all_outputs.append(
+            {"species": input["species"], "output": output.create_json()}
+        )
 
-                display(plot_panel)
-            else:
-                from core.outputs import serve_panel
+    # Save or print all outputs as a single JSON
+    # Use unique_id from the first input for filename
+    unique_id = inputs[0].get("unique_id", "unknown")
+    output_filename = (
+        f"results_{unique_id}.json"
+        if len(all_outputs) > 1
+        else f"{inputs[0]['species']}_{unique_id}_results.json"
+    )
+    output_file = os.path.join(output_path, output_filename)
+    with open(output_file, "w") as f:
+        json.dump(all_outputs, f, indent=2)
+    if exec_dashboard:
+        # Write NetCDF output using the first output object
+        netcdf_filename = (
+            f"results_{unique_id}.nc"
+            if len(all_outputs) > 1
+            else f"{inputs[0]['species']}_{unique_id}_results.nc"
+        )
+        netcdf_file = os.path.join(output_path, netcdf_filename)
+        # Use the first output object for NetCDF export
+        output.to_netcdf(netcdf_file)
+    if print_results:
+        try:
+            from tabulate import tabulate
 
-                serve_panel(plot_panel, port=5006, open_browser=True)
-                print(
-                    "Panel server started on http://localhost:5006. Press Ctrl+C to stop."
-                )
-        else:
-            # Output JSON file per input
-            output_json = output.create_json()
-            with open(f"{input['species']}_results.json", "w") as f:
-                json.dump(output_json, f, indent=2)
-            if print_json:
-                try:
-                    from tabulate import tabulate
-
-                    def dict_to_table(d):
-                        # Flatten dict for tabulate
-                        rows = []
-                        for k, v in d.items():
-                            if isinstance(v, dict):
-                                for k2, v2 in v.items():
-                                    if isinstance(v2, dict):
-                                        for k3, v3 in v2.items():
-                                            rows.append([f"{k}.{k2}.{k3}", v3])
-                                    else:
-                                        rows.append([f"{k}.{k2}", v2])
-                            else:
-                                rows.append([k, v])
-                        return rows
-
-                    print(
-                        tabulate(dict_to_table(output_json), headers=["Key", "Value"])
-                    )
-                except ImportError:
-                    print(json.dumps(output_json, indent=2))
+            print(tabulate(dict_to_table_multi(all_outputs), headers=["Key", "Value"]))
+        except ImportError:
+            print(json.dumps(all_outputs, indent=2))
 
 
-if __name__ == "__main__":
+def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Run FruitFlyPheno main pipeline.")
@@ -220,19 +220,20 @@ if __name__ == "__main__":
         default=None,
         help="Path to input JSON file. If not provided, uses test input.",
     )
+    # Remove plot-related arguments
+    # parser.add_argument(
+    #     "--plot",
+    #     action="store_true",
+    #     help="Flag to plot results instead of saving JSON. If used in Colab/Jupyter, displays inline.",
+    # )
+    # parser.add_argument(
+    #     "--save-plot",
+    #     type=str,
+    #     default=None,
+    #     help="If provided, saves the plot as an HTML file to this path (only used with --plot).",
+    # )
     parser.add_argument(
-        "--plot",
-        action="store_true",
-        help="Flag to plot results instead of saving JSON. If used in Colab/Jupyter, displays inline.",
-    )
-    parser.add_argument(
-        "--save-plot",
-        type=str,
-        default=None,
-        help="If provided, saves the plot as an HTML file to this path (only used with --plot).",
-    )
-    parser.add_argument(
-        "--print-json",
+        "--print-results",
         action="store_true",
         help="Print output JSON to terminal in a formatted, readable table.",
     )
@@ -241,13 +242,35 @@ if __name__ == "__main__":
         action="store_true",
         help="Load/save model results from/to a pickle file for faster plotting development.",
     )
+    parser.add_argument(
+        "--unique-id",
+        type=str,
+        default=None,
+        help="Unique ID for this run. Overrides unique_id in input JSON if provided.",
+    )
+    parser.add_argument(
+        "--exec-dashboard",
+        action="store_true",
+        help="Flag to execute the dashboard after running the pipeline.",
+    )
+    parser.add_argument(
+        "--output-path",
+        type=str,
+        required=True,
+        help="Directory path to save the output JSON file. Mandatory.",
+    )
+
     args = parser.parse_args()
 
-    # If --input is not provided, pass None to main (will use test input)
-    main(
+    return fflies_model(
         input_json=args.input,
-        plot=args.plot,
-        save_plot=args.save_plot,
-        print_json=args.print_json,
+        print_results=args.print_results,
         use_pickle=args.use_pickle,
+        unique_id=getattr(args, "unique_id", None),
+        exec_dashboard=getattr(args, "exec_dashboard", False),
+        output_path=args.output_path,
     )
+
+
+if __name__ == "__main__":
+    sys.exit(main())

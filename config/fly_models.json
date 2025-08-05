@@ -29,6 +29,7 @@
       }
     ]
   },
+
   "z_tau": {
     "stages": [
       {
@@ -36,6 +37,17 @@
         "UTT": 999,
         "LTT": 9.22,
         "dd_threshold": 459.28
+      }
+    ]
+  },
+
+  "z_cucurbitae": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 999,
+        "LTT": 10.2,
+        "dd_threshold": 502.9
       }
     ]
   },

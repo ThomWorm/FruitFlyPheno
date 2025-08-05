@@ -1,0 +1,25 @@
+[
+    {
+        "user_id": "user_001",
+        "unique_id": "norm_z_cucurbitae",
+        "latitude": 34.149176, 
+        "longitude": -118.475256
+        ,
+        "detection_date": "2025-07-22",
+        "species": "z_cucurbitae",
+        "generations": 3
+    },
+    {
+        "user_id": "user_001",
+        "unique_id": "norm_z_tau",
+        "latitude": 34.149176, 
+        "longitude": -118.475256
+        ,
+        "detection_date": "2025-07-22",
+        "species": "z_tau",
+        "generations": 3
+    }
+
+   
+    
+]

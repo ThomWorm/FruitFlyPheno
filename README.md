@@ -44,3 +44,10 @@ python -m fflies.main --input path/to/input.json --plot --save-plot output.html 
 - Use `--use-pickle` to cache results for faster development.
 
 For more details, see the docstring in `fflies/main.py`.
+
+
+
+## Sample commands
+uv run dashboard.py ../outputs/medfly_alameda_results.nc
+
+run main.py --input '../config/alameda_test.json' --output-path '../outputs/' --exec-dashboard

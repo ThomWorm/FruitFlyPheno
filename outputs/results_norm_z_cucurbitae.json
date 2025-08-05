@@ -1,0 +1,44 @@
+[
+  {
+    "species": "z_cucurbitae",
+    "output": {
+      "detection_date": "2025-07-22",
+      "species": "z_cucurbitae",
+      "latitude": 34.149176,
+      "longitude": -118.475256,
+      "generations": {
+        "F1": {
+          "likely_completion_date": "2025-08-27"
+        },
+        "F2": {
+          "likely_completion_date": "2025-10-03"
+        },
+        "F3": {
+          "likely_completion_date": "2025-11-30",
+          "latest_likely_completion_date": "2026-01-06"
+        }
+      }
+    }
+  },
+  {
+    "species": "z_tau",
+    "output": {
+      "detection_date": "2025-07-22",
+      "species": "z_tau",
+      "latitude": 34.149176,
+      "longitude": -118.475256,
+      "generations": {
+        "F1": {
+          "likely_completion_date": "2025-08-22"
+        },
+        "F2": {
+          "likely_completion_date": "2025-09-21"
+        },
+        "F3": {
+          "likely_completion_date": "2025-10-29",
+          "latest_likely_completion_date": "2025-11-16"
+        }
+      }
+    }
+  }
+]

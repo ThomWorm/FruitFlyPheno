@@ -2,15 +2,17 @@
 
 # Top-level exports (API surface)
 from .core import (
-    DegreeDayModel,
+    # DegreeDayModel,
     WeatherDataHandler,
     fflies_prediction_wrapper,
     fflies_spatial_wrapper,
     FfliesOutput,
+    dict_to_table_multi,
 )
 from .io_handlers import load_config, OutputGenerator, get_user_input
 from .utils import load_species_params
-from .dashboard import dashboard
+
+# from .dashboard import dashboard
 
 # Optional but useful:
 __all__ = [
