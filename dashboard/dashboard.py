@@ -1,6 +1,6 @@
 import os
 
-from styles.dashboard_css import DASHBOARD_RAW_CSS
+from dashboard.styles import DASHBOARD_RAW_CSS
 
 import panel as pn
 import holoviews as hv
