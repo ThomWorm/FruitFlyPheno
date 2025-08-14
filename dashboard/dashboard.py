@@ -60,6 +60,9 @@ def create_fflies_dashboard(
     ds = xr.open_dataset(netcdf_path)
     # da = next(iter(ds.data_vars.values()))
     da = ds["days_to_completion"]  # Use the specific variable name from the dataset
+    most_likely = ds["most_likely_completion_date"]
+    latest_likely = ds["latest_likely_completion_date"]
+    range_likely = ds["range_of_completion_dates"]
     species = ds.attrs.get("species", "Unknown")
     detection_date = ds.attrs.get("detection_date", "2000-01-01")
     latitude = float(ds.attrs.get("latitude", ds.coords["latitude"].values.mean()))
@@ -71,11 +74,6 @@ def create_fflies_dashboard(
     logo = logo_path or LOGO_PATH
     about_pdf = about_pdf_path or ABOUT_PDF_PATH
 
-    precomputed = {
-        "Most Likely Completion Date": da.mean(dim="year"),
-        "Latest Likely Completion Date": da.max(dim="year"),
-        "Range of Likely Completion Dates": da.max(dim="year") - da.min(dim="year"),
-    }
     da = da.sortby(["latitude", "longitude"])
     years = da.coords["year"].values
     year_labels = {f"sim{y}": y for y in da.coords["year"].values}
@@ -156,12 +154,12 @@ def create_fflies_dashboard(
     # Compute global min/max for all generations for consistent color mapping
     global_min = float(da.min())
     global_max = float(da.max())
-    global_most_likely_min = float(precomputed["Latest Likely Completion Date"].min())
-    global_most_likely_max = float(precomputed["Latest Likely Completion Date"].max())
-    global_latest_likely_min = float(precomputed["Latest Likely Completion Date"].min())
-    global_latest_likely_max = float(precomputed["Latest Likely Completion Date"].max())
-    global_range_min = float(precomputed["Range of Likely Completion Dates"].min())
-    global_range_max = float(precomputed["Range of Likely Completion Dates"].max())
+    global_most_likely_min = float(latest_likely.min())
+    global_most_likely_max = float(latest_likely.max())
+    global_latest_likely_min = float(latest_likely.min())
+    global_latest_likely_max = float(latest_likely.max())
+    global_range_min = float(range_likely.min())
+    global_range_max = float(range_likely.max())
 
     clim_per_gen = {}
     clim_most_likely_per_gen = {}
@@ -186,21 +184,15 @@ def create_fflies_dashboard(
         alpha = 0.65 if low_transparency else 0.94
 
         if year_or_stat == "most_likely":
-            sliced = precomputed["Most Likely Completion Date"].sel(
-                generation=generation
-            )
+            sliced = most_likely.sel(generation=generation)
             clim = clim_most_likely_per_gen[gen_key]
             cmap = "Viridis"
         elif year_or_stat == "latest_likely":
-            sliced = precomputed["Latest Likely Completion Date"].sel(
-                generation=generation
-            )
+            sliced = latest_likely.sel(generation=generation)
             clim = clim_latest_likely_per_gen[gen_key]
             cmap = "Viridis"
         elif year_or_stat == "range":
-            sliced = precomputed["Range of Likely Completion Dates"].sel(
-                generation=generation
-            )
+            sliced = range_likely.sel(generation=generation)
             clim = clim_range_per_gen[gen_key]
             cmap = "Magma"
         else:

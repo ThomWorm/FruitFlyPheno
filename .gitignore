@@ -171,3 +171,4 @@ cython_debug/
 
 #folders
 data/.env
+outputs/

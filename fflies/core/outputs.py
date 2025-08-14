@@ -139,7 +139,7 @@ class FfliesOutput:
 
     def to_netcdf(self, path):
         """
-        Write the output data to a NetCDF file, including all relevant metadata.
+        Write the output data to a NetCDF file, including all relevant metadata and computed layers.
 
         Parameters
         ----------
@@ -153,9 +153,21 @@ class FfliesOutput:
         ds.attrs["latitude"] = self.latitude
         ds.attrs["longitude"] = self.longitude
         ds.attrs["unique_id"] = self.unique_id if self.unique_id is not None else ""
-        # Add generations as a JSON string attribute
         ds.attrs["generations"] = json.dumps(self.generations)
+        # --- Add computed layers ---
+        # Most Likely Completion Date (mean over year)
+        if "days_to_completion" in ds:
+            ds["most_likely_completion_date"] = ds["days_to_completion"].mean(
+                dim="year"
+            )
+            ds["latest_likely_completion_date"] = ds["days_to_completion"].max(
+                dim="year"
+            )
+            ds["range_of_completion_dates"] = ds["days_to_completion"].max(
+                dim="year"
+            ) - ds["days_to_completion"].min(dim="year")
         # Write to NetCDF
+        print(ds)
         ds.to_netcdf(path)
 
 
