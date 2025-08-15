@@ -48,6 +48,10 @@ class WeatherDataHandler:
         # Remove CRS dimension if present
 
         self.gridmet_data = ds
+        # convert kelvin to celsius
+        # convert weather data from kelvin to celsius
+        ds["tmax"] = ds["tmax"] - 273.15
+        ds["tmin"] = ds["tmin"] - 273.15
         return ds
 
     def _rename_variables(self, ds: xr.Dataset) -> xr.Dataset:

@@ -64,7 +64,7 @@ def fflies_model(
         )
 
     # CLI/GUI/web form returns a list of dicts
-    weather = WeatherDataHandler(cache_dir=config["weather"]["cache_dir"])
+    weather = WeatherDataHandler()
 
     # Remove plot-related checks
     # if plot and len(inputs) > 1:
@@ -101,66 +101,57 @@ def fflies_model(
         detection_dt = pd.to_datetime(input["detection_date"])
         start_year = detection_dt.year - 20
         start_date = pd.Timestamp(year=start_year, month=1, day=1).strftime("%Y-%m-%d")
-        pickle_filename = f"{input['species']}_results.pkl"
         results = None
         all_historical = 1  # Default to historical unless prediction is run
-        if use_pickle and os.path.exists(pickle_filename):
-            with open(pickle_filename, "rb") as pf:
-                results = pickle.load(pf)
-            print(f"Loaded model results from {pickle_filename}")
+
+        print(
+            "Fetching weather data for:",
+            input["species"],
+            "from",
+            start_date,
+            "to now",
+        )
+        if exec_dashboard:
+            buffer = True
         else:
-            print(
-                "Fetching weather data for:",
-                input["species"],
-                "from",
-                start_date,
-                "to now",
+            buffer = False
+        weather_data = weather.fetch_data_gridmet(
+            latitude=input["latitude"],
+            longitude=input["longitude"],
+            time_range=(start_date, pd.Timestamp.now()),
+            use_buffer=buffer,  # Plotting buffer no longer relevant
+        ).load()  # Load the dataset immediately
+
+        print("Weather data loaded")
+        # ----------------------------
+        # 2. MODELLING
+        # ----------------------------
+        test_idx = (
+            weather_data["t"].get_index("t").get_loc(input["detection_date"])
+        )  # TODO double check that loc off of a string works _ I think it does
+        detection_date = pd.to_datetime(input["detection_date"])
+        results = fflies_spatial_wrapper(
+            weather_data["tmax"], weather_data["tmin"], test_idx, species_params
+        )
+        if results["incomplete_development"].any():
+            print("Incomplete development detected, running prediction.")
+            detection_dt = pd.to_datetime(input["detection_date"])
+            results = fflies_prediction_wrapper(
+                current_data=weather_data.isel(t=slice(test_idx, None)),
+                historical_data=weather_data,
+                stages=species_params,
+                detection_date=detection_date,
+                generations=input["generations"],
+                start_year=detection_dt.year - 20,
+                end_year=detection_dt.year - 1,
             )
-            if exec_dashboard:
-                buffer = True
-            else:
-                buffer = False
-            weather_data = weather.fetch_data_gridmet(
-                latitude=input["latitude"],
-                longitude=input["longitude"],
-                time_range=(start_date, pd.Timestamp.now()),
-                use_buffer=buffer,  # Plotting buffer no longer relevant
-            )
-            # Ensure t is a single chunk for apply_ufunc compatibility
-            weather_data = weather_data.load()
-            # convert weather data from kelvin to celsius
-            weather_data["tmax"] = weather_data["tmax"] - 273.15
-            weather_data["tmin"] = weather_data["tmin"] - 273.15
-            print("Weather data loaded")
-            # ----------------------------
-            # 2. MODELLING
-            # ----------------------------
-            test_idx = (
-                weather_data["t"].get_index("t").get_loc(input["detection_date"])
-            )  # TODO double check that loc off of a string works _ I think it does
-            detection_date = pd.to_datetime(input["detection_date"])
-            results = fflies_spatial_wrapper(
-                weather_data["tmax"], weather_data["tmin"], test_idx, species_params
-            )
-            if results["incomplete_development"].any():
-                print("Incomplete development detected, running prediction.")
-                detection_dt = pd.to_datetime(input["detection_date"])
-                results = fflies_prediction_wrapper(
-                    current_data=weather_data.isel(t=slice(test_idx, None)),
-                    historical_data=weather_data,
-                    stages=species_params,
-                    detection_date=detection_date,
-                    generations=input["generations"],
-                    start_year=detection_dt.year - 20,
-                    end_year=detection_dt.year - 1,
-                )
-                all_historical = 0
-            else:
-                print("No incomplete development detected, using historical results.")
-            if use_pickle:
-                with open(pickle_filename, "wb") as pf:
-                    pickle.dump(results, pf)
-                print(f"Saved model results to {pickle_filename}")
+            all_historical = 0
+        else:
+            print("No incomplete development detected, using historical results.")
+        if use_pickle:
+            with open(pickle_filename, "wb") as pf:
+                pickle.dump(results, pf)
+            print(f"Saved model results to {pickle_filename}")
         # ----------------------------
         # 3. POST-PROCESSING
         # ----------------------------
@@ -220,38 +211,16 @@ def main():
         default=None,
         help="Path to input JSON file. If not provided, uses test input.",
     )
-    # Remove plot-related arguments
-    # parser.add_argument(
-    #     "--plot",
-    #     action="store_true",
-    #     help="Flag to plot results instead of saving JSON. If used in Colab/Jupyter, displays inline.",
-    # )
-    # parser.add_argument(
-    #     "--save-plot",
-    #     type=str,
-    #     default=None,
-    #     help="If provided, saves the plot as an HTML file to this path (only used with --plot).",
-    # )
+
     parser.add_argument(
         "--print-results",
         action="store_true",
         help="Print output JSON to terminal in a formatted, readable table.",
     )
     parser.add_argument(
-        "--use-pickle",
+        "--save-exec-dashboard",
         action="store_true",
-        help="Load/save model results from/to a pickle file for faster plotting development.",
-    )
-    parser.add_argument(
-        "--unique-id",
-        type=str,
-        default=None,
-        help="Unique ID for this run. Overrides unique_id in input JSON if provided.",
-    )
-    parser.add_argument(
-        "--exec-dashboard",
-        action="store_true",
-        help="Flag to execute the dashboard after running the pipeline.",
+        help="Flag to save netCDF for the dashboard with metadata.",
     )
     parser.add_argument(
         "--output-path",

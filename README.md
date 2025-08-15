@@ -1,5 +1,49 @@
 # FruitFlyPheno
 
+## Setup Instructions
+
+Follow these steps to set up the environment and get started with the FruitFlyPheno project:
+1. **Clone the Repository**
+  ```bash
+  git clone <repository-url>
+  cd FruitFlyPheno
+  ```
+
+2. **Create and Activate a Virtual Environment with uv**
+  - On Linux/MacOS:
+    ```bash
+    uv venv
+    source .venv/bin/activate
+    ```
+  - On Windows:
+    ```bash
+    uv venv
+    .venv\Scripts\activate
+    ```
+
+3. **Install Dependencies**
+   - Install `uv`:
+     ```bash
+     pip install uv
+     ```
+   - Install project dependencies:
+     ```bash
+     pip install -r requirements.txt
+     ```
+
+4. **Install the Project in Editable Mode - this simplifies pathing**
+   ```bash
+   pip install . -e
+   ```
+
+5. **Verify Installation**
+   Run the following command to ensure everything is set up correctly:
+   ```bash
+   fflies-model --help
+   ```
+
+You are now ready to use the FruitFlyPheno pipeline!
+
 ## Main Function
 
 The main entry point for the FruitFlyPheno pipeline is the `main` function, located in `fflies/main.py`.
