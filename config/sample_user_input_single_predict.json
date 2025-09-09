@@ -3,12 +3,12 @@
 
 [   {
     "user_id": "user_002",
-    "unique_id": "off_santa_clara",
+    "unique_id": "off_santa_clara_pred",
    
     "latitude": 37.344173,
     "longitude": -121.990698,
    
-    "detection_date": "2023-07-20",
+    "detection_date": "2025-07-20",
     "species": "off",
     "generations": 3
 }

@@ -56,7 +56,7 @@ def fflies_core(
                 # Incomplete stage - triggers when the loop ends without reaching the threshold
                 generation_results[gen - 1] = -1.0  # Mark as incomplete
                 return generation_results  # Return results up to this point
-
+        # print(f"Generation {gen} completed in {days_in_stage} days.")
         # Generation completed
         days_elapsed = current_day - start_day
         generation_results[gen - 1] = float(
@@ -74,7 +74,6 @@ def fflies_spatial_wrapper(
     generations: int = 3,
 ) -> xr.Dataset:
     """Simplified wrapper matching core outputs"""
-
     results = xr.apply_ufunc(
         fflies_core,
         tmin_xr,

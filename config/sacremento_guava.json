@@ -1,0 +1,27 @@
+
+
+
+[   {
+    "user_id": "user_002",
+    "unique_id": "CDFA_guavaorpeach?",
+   
+    "latitude": 38.651126,
+    "longitude": -121.154544,
+   
+    "detection_date": "2021-10-11",
+    "species": "peach",
+    "generations": 3
+},
+
+{
+    "user_id": "user_002",
+    "unique_id": "FFLIES_guava",
+   
+    "latitude": 38.651126,
+    "longitude": -121.154544,
+   
+    "detection_date": "2021-10-11",
+    "species": "guava",
+    "generations": 3
+}
+]

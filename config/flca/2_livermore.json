@@ -1,0 +1,26 @@
+
+
+
+[   {
+    "user_id": "user_002",
+    "unique_id": "CDFA_livermore_mexfly",
+   
+    "latitude": 37.69044,
+    "longitude": -121.76715,
+   
+    "detection_date": "2024-04-29",
+    "species": "mexfly",
+    "generations": 3
+},
+{
+    "user_id": "user_002",
+    "unique_id": "FFLIES_livermore_melon",
+   
+    "latitude": 37.69044,
+    "longitude": -121.76715,
+   
+    "detection_date": "2024-04-29",
+    "species": "z_cucurbitae",
+    "generations": 3
+}
+]

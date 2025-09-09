@@ -1,0 +1,26 @@
+
+
+
+[   {
+    "user_id": "user_002",
+    "unique_id": "CDFA_castaic_mexfly",
+   
+    "latitude": 34.46998,
+    "longitude": -118.64381,
+   
+    "detection_date": "2024-09-03",
+    "species": "mexfly",
+    "generations": 3
+},
+{
+    "user_id": "user_002",
+    "unique_id": "FFLIES_castaic_melon",
+   
+    "latitude": 34.46998,
+    "longitude": -118.64381,
+   
+    "detection_date": "2024-09-03",
+    "species": "z_cucurbitae",
+    "generations": 3
+}
+]

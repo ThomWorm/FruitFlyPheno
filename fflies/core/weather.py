@@ -32,11 +32,42 @@ data = xr.open_mfdataset(gridmet_URL)
 class WeatherDataHandler:
 
     cache_dir: Optional[Path] = None
-
     gridmet_urls = [
         "http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_tmmx_1979_CurrentYear_CONUS.nc#fillmismatch",  # add #fillmismatch to URL if broken
         "http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_tmmn_1979_CurrentYear_CONUS.nc#fillmismatch",
     ]
+    bounding_box: Optional[tuple] = None  # Store bounding box as a class variable
+
+    def __post_init__(self):
+        """Initialize the WeatherDataHandler by pinging URLs and retrieving bounding box."""
+        self.bounding_box = self._get_dataset_bbox()
+
+    def _get_dataset_bbox(self) -> tuple:
+        """
+        Ping the GridMET URLs and retrieve the bounding box of the served datasets.
+        Returns a tuple (lat_min, lat_max, lon_min, lon_max).
+        """
+        try:
+            # Open the dataset to retrieve metadata
+            ds = xr.open_dataset(self.gridmet_urls[0], decode_cf=False)
+            lat_min, lat_max = ds["lat"].min().item(), ds["lat"].max().item()
+            lon_min, lon_max = ds["lon"].min().item(), ds["lon"].max().item()
+            return lat_min, lat_max, lon_min, lon_max
+        except Exception as e:
+            raise RuntimeError(f"Failed to retrieve bounding box: {e}")
+
+    def is_within_bbox(self, latitude: float, longitude: float) -> bool:
+        """
+        Check if the given latitude and longitude are within the bounding box.
+        Returns True if within bounds, False otherwise.
+        """
+        if self.bounding_box is None:
+            raise ValueError(
+                "Bounding box is not defined. Please initialize the handler."
+            )
+
+        lat_min, lat_max, lon_min, lon_max = self.bounding_box
+        return lat_min <= latitude <= lat_max and lon_min <= longitude <= lon_max
 
     def _open_gridmet_dataset(self):
         """Open the GridMET tmax and tmin datasets as a combined xarray dataset, removing CRS and disabling chunking along 't'."""
@@ -50,8 +81,7 @@ class WeatherDataHandler:
         self.gridmet_data = ds
         # convert kelvin to celsius
         # convert weather data from kelvin to celsius
-        ds["tmax"] = ds["tmax"] - 273.15
-        ds["tmin"] = ds["tmin"] - 273.15
+
         return ds
 
     def _rename_variables(self, ds: xr.Dataset) -> xr.Dataset:

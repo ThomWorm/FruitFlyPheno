@@ -1,0 +1,103 @@
+
+
+
+[   {
+    "user_id": "user_002",
+    "unique_id": "hillsborough_CDFA_guava_actually_peach",
+   
+    "latitude": 27.9725
+    ,
+    "longitude": -82.45448,
+   
+    "detection_date": "2023-08-15",
+    "species": "peach",
+    "generations": 3
+},
+{
+    "user_id": "user_002",
+    "unique_id": "hillsborough_FFLIES_guava",
+   
+    "latitude": 27.9725
+    ,
+    "longitude": -82.45448,
+   
+    "detection_date": "2023-08-15",
+    "species": "guava",
+    "generations": 3
+},
+{
+    "user_id": "user_002",
+    "unique_id": "hillsborough_FFLIES_off",
+   
+    "latitude": 27.9725
+    ,
+    "longitude": -82.45448,
+   
+    "detection_date": "2023-08-15",
+    "species": "off",
+    "generations": 3
+},
+{
+    "user_id": "user_002",
+    "unique_id": "hillsborough_FFLIES_medfly",
+   
+    "latitude": 27.9725
+    ,
+    "longitude": -82.45448,
+   
+    "detection_date": "2023-08-15",
+    "species": "medfly",
+    "generations": 3
+},
+{
+    "user_id": "user_002",
+    "unique_id": "hillsborough_FFLIES_mexfly",
+   
+    "latitude": 27.9725
+    ,
+    "longitude": -82.45448,
+   
+    "detection_date": "2023-08-15",
+    "species": "mexfly",
+    "generations": 3
+},
+{
+    "user_id": "user_002",
+    "unique_id": "hillsborough_FFLIES_Z_cucurbitae",
+   
+    "latitude": 27.9725
+    ,
+    "longitude": -82.45448,
+   
+    "detection_date": "2023-08-15",
+    "species": "z_cucurbitae",
+    "generations": 3
+},
+{
+    "user_id": "user_002",
+    "unique_id": "hillsborough_FFLIES_Z_tau",
+   
+    "latitude": 27.9725
+    ,
+    "longitude": -82.45448,
+   
+    "detection_date": "2023-08-15",
+    "species": "z_tau",
+    "generations": 3
+},
+{
+    "user_id": "user_002",
+    "unique_id": "hillsborough_FFLIES_queensland",
+   
+    "latitude": 27.9725
+    ,
+    "longitude": -82.45448,
+   
+    "detection_date": "2023-08-15",
+    "species": "queensland",
+    "generations": 3
+}
+
+]
+	
+
