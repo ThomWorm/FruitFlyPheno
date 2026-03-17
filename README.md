@@ -3,95 +3,138 @@
 ## Setup Instructions
 
 Follow these steps to set up the environment and get started with the FruitFlyPheno project:
+
 1. **Clone the Repository**
-  ```bash
-  git clone <repository-url>
-  cd FruitFlyPheno
-  ```
-
-2. **Create and Activate a Virtual Environment with uv**
-  - On Linux/MacOS:
-    ```bash
-    uv venv
-    source .venv/bin/activate
-    ```
-  - On Windows:
-    ```bash
-    uv venv
-    .venv\Scripts\activate
-    ```
-
-3. **Install Dependencies**
-   - Install `uv`:
-     ```bash
-     pip install uv
-     ```
-   - Install project dependencies:
-     ```bash
-     pip install -r requirements.txt
-     ```
-
-4. **Install the Project in Editable Mode - this simplifies pathing**
    ```bash
-   pip install . -e
+   git clone <repository-url>
+   cd FruitFlyPheno
+   ```
+
+2. **Install `uv`**
+   ```bash
+   pip install uv
+   ```
+
+3. **Create and Activate a Virtual Environment with uv**
+   - On Linux/macOS:
+     ```bash
+     uv venv
+     source .venv/bin/activate
+     ```
+   - On Windows:
+     ```bash
+     uv venv
+     .venv\Scripts\activate
+     ```
+
+4. **Install the Project and Dependencies in Editable Mode**
+   ```bash
+   pip install -e .
    ```
 
 5. **Verify Installation**
    Run the following command to ensure everything is set up correctly:
    ```bash
-   fflies-model --help
+   fflies-SAFARIS --help
    ```
 
 You are now ready to use the FruitFlyPheno pipeline!
 
-## Main Function
+## Running the Model
 
-The main entry point for the FruitFlyPheno pipeline is the `main` function, located in `fflies/main.py`.
+### CLI Entry Points
 
-### Function Signature
+The package provides two CLI commands:
 
-```python
-def main(input_json=None, plot=False, save_plot=None, print_json=False, use_pickle=False):
-    """
-    Main entry point for FruitFlyPheno pipeline.
-    """
-```
-
-### Parameters
-
-- **input_json** (`str` or `None`):  
-  Path to input JSON file, or `"test"` to use test input. If `None`, uses test input.
-
-- **plot** (`bool`):  
-  If `True`, displays an interactive plot inline (Jupyter/Colab) or in the browser (local).
-
-- **save_plot** (`str` or `None`):  
-  If provided, saves the plot as an HTML file to this path. If `None`, does not save.
-
-- **print_json** (`bool`):  
-  If `True`, prints the output JSON to the terminal in a formatted, readable table.
-
-- **use_pickle** (`bool`):  
-  If `True`, loads/saves model results from/to a pickle file for faster plotting development.
-
-### Usage
-
-You can run the pipeline from the command line:
+#### `fflies-SAFARIS` — Run the degree-day model
 
 ```bash
-python -m fflies.main --input path/to/input.json --plot --save-plot output.html --print-json --use-pickle
+fflies-SAFARIS --input path/to/input.json [OPTIONS]
 ```
-- Use `--input_json` to specify the input JSON file 
-- Use `--plot` to visualize results.
-- Use `--save-plot` to save the plot as HTML.
-- Use `--print-json` to print the output JSON in a readable table.
-- Use `--use-pickle` to cache results for faster development.
 
-For more details, see the docstring in `fflies/main.py`.
+**Options:**
 
+| Flag | Description |
+|------|-------------|
+| `--input PATH` | **(Required)** Path to input JSON file |
+| `--output-path DIR` | Directory to save output files (default: `outputs`) |
+| `--print-results` | Print results to the terminal as a formatted table |
+| `--save-exec-dashboard` | Also save a NetCDF file for use with the dashboard |
+| `--predict-from-date YYYY-MM-DD` | Truncate weather data at this date and run a forward prediction |
 
+**Example:**
+```bash
+fflies-SAFARIS \
+    --input config/sample_user_input_single.json \
+    --output-path outputs \
+    --print-results \
+    --save-exec-dashboard
+```
 
-## Sample commands
-uv run dashboard.py ../outputs/medfly_alameda_results.nc
+#### `fflies-dashboard` — Visualise results
 
-run main.py --input '../config/alameda_test.json' --output-path '../outputs/' --exec-dashboard
+```bash
+fflies-dashboard path/to/results.nc [--port PORT]
+```
+
+**Options:**
+
+| Argument | Description |
+|----------|-------------|
+| `netcdf_path` | **(Required)** Path to the NetCDF file produced by `fflies-SAFARIS --save-exec-dashboard` |
+| `--port PORT` | Port to serve the dashboard on (default: `5006`) |
+
+**Example:**
+```bash
+fflies-dashboard outputs/medfly_off_santa_clara_results.nc --port 5006
+# Then open http://localhost:5006 in your browser
+```
+
+### Input JSON Format
+
+The model takes a JSON array where each element describes a single detection event. Example (`config/sample_user_input_single.json`):
+
+```json
+[{
+    "user_id": "user_002",
+    "unique_id": "off_santa_clara",
+    "latitude": 37.344173,
+    "longitude": -121.990698,
+    "detection_date": "2023-07-20",
+    "species": "off",
+    "generations": 3
+}]
+```
+
+**Required fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `unique_id` | string | Unique identifier used in output filenames |
+| `latitude` | float | Latitude of the detection site (North America coverage) |
+| `longitude` | float | Longitude of the detection site |
+| `detection_date` | string | Date of first detection (`YYYY-MM-DD`, between 2000-01-01 and today) |
+| `species` | string | Species code (e.g. `medfly`, `mexfly`, `off`, `queensland`) |
+| `generations` | int | Number of generations to model (positive integer) |
+
+### Supported Species
+
+| Code | Common Name |
+|------|-------------|
+| `medfly` | Mediterranean Fruit Fly |
+| `mexfly` | Mexican Fruit Fly |
+| `off` | Oriental Fruit Fly |
+| `queensland` | Queensland Fruit Fly |
+| `z_tau` | Zeugodacus tau |
+| `z_cucurbitae` | Zeugodacus cucurbitae (Melon Fly) |
+| `peach` | Bactrocera zonata (Peach Fruit Fly) |
+| `guava` | Bactrocera correcta (Guava Fruit Fly) |
+
+### Output Files
+
+Running `fflies-SAFARIS` produces:
+
+- `outputs/results_<input_filename>.json` — Predicted generation completion dates in JSON format.
+- `outputs/<species>_<unique_id>_results.nc` — NetCDF dataset (only when `--save-exec-dashboard` is used); required by `fflies-dashboard`.
+
+For more details, see `fflies/main.py`.

@@ -321,7 +321,7 @@ def main():
         input_json=args.input,
         print_results=args.print_results,
         unique_id=getattr(args, "unique_id", None),
-        exec_dashboard=getattr(args, "exec_dashboard", False),
+        exec_dashboard=getattr(args, "save_exec_dashboard", False),
         output_path=args.output_path,
         predict_from_date=args.predict_from_date,  # Pass the new argument
     )
