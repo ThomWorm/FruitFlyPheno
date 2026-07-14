@@ -26,17 +26,16 @@ class FfliesOutput:
     all_historical: int
     unique_id: str = None  # Optional unique identifier for the output
 
-    def create_json(self):
+    def _extract_completion_dates(self):
         """
-        Return the output JSON structure as a dictionary instead of writing to a file.
+        Helper method to extract mean and max completion dates for all generations.
+        Returns tuple of (mean_completion_dates, max_completion_dates).
         """
         # Convert detection_date string to datetime.date
         detection_date_dt = datetime.datetime.strptime(
             self.detection_date, "%Y-%m-%d"
         ).date()
-        # ==============
-        # extract mean and max completions for each generation
-        # ==============
+        
         mean_completion_dates = []
         max_completion_dates = []
         for gen_i in range(
@@ -48,37 +47,70 @@ class FfliesOutput:
                 generation=gen_i,
                 method="nearest",
             )
-            # Mean
-            mean_duration = generation_data.values.mean().astype(int)
-            mean_duration = int(mean_duration)
+            # Mean across years
+            mean_duration = int(generation_data.mean(dim='year').values)
             mean_completion_date = (
                 detection_date_dt + timedelta(days=mean_duration)
             ).strftime("%Y-%m-%d")
             mean_completion_dates.append(mean_completion_date)
-            # Max
-            max_duration = generation_data.values.max().astype(int)
-            max_duration = int(max_duration)
+            # Max across years
+            max_duration = int(generation_data.max(dim='year').values)
             max_completion_date = (
                 detection_date_dt + timedelta(days=max_duration)
             ).strftime("%Y-%m-%d")
             max_completion_dates.append(max_completion_date)
-        # ==============
-        # calculate latest likely completion date
-        # ==============
+        
+        return mean_completion_dates, max_completion_dates
+
+    def create_csv(self):
         """
-        if self.all_historical == 0:
-            latest_completion_date = self._MCMC_latest_completion_date()
-        else:
-            latest_completion_date = self.data["days_to_completion"].max().values
-            latest_completion_date = int(latest_completion_date)
-            latest_completion_date = (
-                detection_date_dt + timedelta(days=latest_completion_date)
-            ).strftime("%Y-%m-%d")
+        Return the output data as a list of dictionaries formatted for CSV export.
+        Each row represents a single simulation result.
+        Structure: unique_id first, then metadata, then completion dates, then days to completion.
         """
+        mean_completion_dates, max_completion_dates = self._extract_completion_dates()
+        
+        # Convert detection_date to datetime for calculating days
+        detection_date_dt = datetime.datetime.strptime(
+            self.detection_date, "%Y-%m-%d"
+        ).date()
+        
+        # Create a single row with unique_id first, then metadata, then generation dates
+        row = {
+            "unique_id": self.unique_id if self.unique_id else "",
+            "detection_date": self.detection_date,
+            "species": self.species,
+            "latitude": self.latitude,
+            "longitude": self.longitude,
+        }
+        
+        # Add generation completion dates
+        for i in range(len(mean_completion_dates)):
+            row[f"F{i+1}_likely_completion_date"] = mean_completion_dates[i]
+            if i == len(mean_completion_dates) - 1:  # Only add max for last generation
+                row[f"F{i+1}_latest_likely_completion_date"] = max_completion_dates[i]
+        
+        # Add days to F3 completion (last generation)
+        last_gen_idx = len(mean_completion_dates) - 1
+        f3_mean_date = datetime.datetime.strptime(mean_completion_dates[last_gen_idx], "%Y-%m-%d").date()
+        f3_max_date = datetime.datetime.strptime(max_completion_dates[last_gen_idx], "%Y-%m-%d").date()
+        
+        row[f"F{last_gen_idx+1}_days_to_likely_completion"] = (f3_mean_date - detection_date_dt).days
+        row[f"F{last_gen_idx+1}_days_to_latest_likely_completion"] = (f3_max_date - detection_date_dt).days
+        
+        return [row]  # Return as list for consistency with CSV writing
+
+    def create_json(self):
+        """
+        Return the output JSON structure as a dictionary instead of writing to a file.
+        """
+        mean_completion_dates, max_completion_dates = self._extract_completion_dates()
+        
         # ==============
         # Create the JSON structure
         # ==============
         output_json = {
+            "unique_id": self.unique_id if self.unique_id else "",
             "detection_date": self.detection_date,
             "species": self.species,
             "latitude": self.latitude,
@@ -157,6 +189,7 @@ class FfliesOutput:
         # --- Add computed layers ---
         # Most Likely Completion Date (mean over year)
         if "days_to_completion" in ds:
+            print(days_to_completion := ds["days_to_completion"])
             ds["most_likely_completion_date"] = ds["days_to_completion"].mean(
                 dim="year"
             )

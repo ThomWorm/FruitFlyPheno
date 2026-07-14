@@ -1,0 +1,32 @@
+[{
+    "user_id": "user_002",
+    "unique_id": "serpentina_riohondo_combined",
+   
+    "latitude": 26.246420,
+    "longitude": -97.502630,
+   
+    "detection_date": "2026-01-27",
+    "species": "a_serpentina_combined_nu_maturation",
+    "generations": 3
+},
+ {
+        "user_id": "user_002",
+        "unique_id": "alamo_serpentina_UC_peach",
+    
+        "latitude": 26.151408,
+        "longitude": -98.128315,
+    
+        "detection_date": "2026-02-27",
+        "species": "a_serpentina_UC_peach",
+        "generations": 3
+    },
+    {
+        "user_id": "user_002",
+        "unique_id": "alamo_serpentina_UC_zapote",
+    
+        "latitude": 26.151408,
+        "longitude": -98.128315,
+    
+        "detection_date": "2026-02-27",
+        "species": "a_serpentina_UC_zapote",
+        "generations": 3}]

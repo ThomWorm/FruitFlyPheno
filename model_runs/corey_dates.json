@@ -1,0 +1,102 @@
+[{
+    "user_id": "user_002",
+    "unique_id": "serpentina_riohondo_preferred",
+   
+    "latitude": 26.246420,
+    "longitude": -97.502630,
+   
+    "detection_date": "2026-01-27",
+    "species": "a_serpentina_combined_celedonio_maturation",
+    "generations": 3
+},
+ 
+{
+    "user_id": "user_002",
+    "unique_id": "serpentina_riohondo_mexfly",
+   
+    "latitude": 26.246420,
+    "longitude": -97.502630,
+   
+    "detection_date": "2026-01-27",
+    "species": "mexfly",
+    "generations": 3
+},
+{
+    "user_id": "user_002",
+    "unique_id": "serpentina_alamo_preferred",
+   
+    "latitude":  26.151408,
+    "longitude":  -98.128315,
+   
+    "detection_date": "2026-02-25",
+    "species": "a_serpentina_combined_celedonio_maturation",
+    "generations": 3
+},
+{
+    "user_id": "user_002",
+    "unique_id": "serpentina_alamo_mexfly",
+   
+    "latitude":  26.151408,
+    "longitude":  -98.128315,
+   
+    "detection_date": "2026-02-25",
+    "species": "mexfly",
+    "generations": 3
+},
+{
+    "user_id": "user_002",
+    "unique_id": "serpentina_feria_preferred",
+   
+    "latitude":  26.151408,
+    "longitude":  -98.128315,
+   
+    "detection_date": "2026-02-12",
+    "species": "a_serpentina_combined_celedonio_maturation",
+    "generations": 3
+},
+{
+    "user_id": "user_002",
+    "unique_id": "serpentina_feria_mexfly",
+   
+    "latitude":  26.151408,
+    "longitude":  -98.128315,
+   
+    "detection_date": "2026-02-12",
+    "species": "mexfly",
+    "generations": 3
+},
+{
+    "user_id": "user_002",
+    "unique_id": "obliqua_mission_fu",
+   
+    "latitude":   26.223984,
+    "longitude":   -98.36127,
+    "detection_date": "2026-01-12",
+    "species": "obliqua_fu",
+    "generations": 3
+},
+{
+    "user_id": "user_002",
+    "unique_id": "obliqua_mission_tellesromero",
+   
+    "latitude":   26.223984,
+    "longitude":   -98.36127,
+    "detection_date": "2026-01-12",
+    "species": "obliqua_TellesRomero",
+    "generations": 3
+},
+{
+    "user_id": "user_002",
+    "unique_id": "obliqua_mission_mexfly",
+   
+    "latitude":   26.223984,
+    "longitude":   -98.36127,
+    "detection_date": "2026-01-12",
+    "species": "mexfly",
+    "generations": 3
+}
+
+
+
+
+]

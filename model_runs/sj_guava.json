@@ -1,0 +1,27 @@
+
+
+
+[   {
+    "user_id": "user_002",
+    "unique_id": "alameda",
+   
+    "latitude": 37.317201,
+    "longitude": -121.763328,
+   
+    "detection_date": "2025-07-27",
+    "species": "guava",
+    "generations": 3
+},
+ {
+    "user_id": "user_002",
+    "unique_id": "alameda",
+   
+    "latitude": 37.317201,
+    "longitude": -121.763328,
+   
+    "detection_date": "2025-07-27",
+    "species": "peach",
+    "generations": 3
+}
+
+]

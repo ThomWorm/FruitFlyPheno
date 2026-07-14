@@ -9,6 +9,7 @@ import datetime
 import pandas as pd
 import xarray as xr
 import numpy as np
+import numpy as np
 from typing import Optional, Any
 
 # Set resource paths once at the top, relative to project root
@@ -63,6 +64,7 @@ def create_fflies_dashboard(
     most_likely = ds["most_likely_completion_date"]
     latest_likely = ds["latest_likely_completion_date"]
     range_likely = ds["range_of_completion_dates"]
+    data_quality_fail_days = ds["data_quality_fail_days"] if "data_quality_fail_days" in ds else None
     species = ds.attrs.get("species", "Unknown")
     detection_date = ds.attrs.get("detection_date", "2000-01-01")
     latitude = float(ds.attrs.get("latitude", ds.coords["latitude"].values.mean()))
@@ -82,6 +84,8 @@ def create_fflies_dashboard(
         "Latest Likely Completion Date": "latest_likely",
         "Range (All Years)": "range",
     }
+    if data_quality_fail_days is not None:
+        custom_layers["Data Quality Fail Days"] = "data_quality"
     year_options = {**custom_layers, **year_labels}
     select_styles = {
         "color": "#1E1E1D",
@@ -160,11 +164,23 @@ def create_fflies_dashboard(
     global_latest_likely_max = float(latest_likely.max())
     global_range_min = float(range_likely.min())
     global_range_max = float(range_likely.max())
+    if data_quality_fail_days is not None:
+        dq_nonzero = data_quality_fail_days.where(data_quality_fail_days >= 1)
+        dq_vals = dq_nonzero.values
+        if np.isfinite(dq_vals).any():
+            # Use a robust cap to prevent extreme outliers from flattening contrast.
+            global_dq_max = float(np.nanpercentile(dq_vals, 99))
+            global_dq_max = max(global_dq_max, 1.01)
+        else:
+            global_dq_max = 1.01
+    else:
+        global_dq_max = 1.01
 
     clim_per_gen = {}
     clim_most_likely_per_gen = {}
     clim_latest_likely_per_gen = {}
     clim_range_per_gen = {}
+    clim_data_quality = (1.0, global_dq_max)
     for gen in generations:
         gen_key = gen.item() if hasattr(gen, "item") else gen
         # Use global min/max for all generations
@@ -182,6 +198,7 @@ def create_fflies_dashboard(
     def make_plot(year_or_stat, generation, low_transparency):
         gen_key = generation.item() if hasattr(generation, "item") else generation
         alpha = 0.65 if low_transparency else 0.94
+        logz = False
 
         if year_or_stat == "most_likely":
             sliced = most_likely.sel(generation=generation)
@@ -195,6 +212,17 @@ def create_fflies_dashboard(
             sliced = range_likely.sel(generation=generation)
             clim = clim_range_per_gen[gen_key]
             cmap = "Magma"
+        elif year_or_stat == "data_quality" and data_quality_fail_days is not None:
+            # Use mean QC fail days across prediction years.
+            if "year" in data_quality_fail_days.dims:
+                sliced = data_quality_fail_days.mean(dim="year")
+            else:
+                sliced = data_quality_fail_days
+            # De-emphasize zero-fail cells and emphasize 1+ via log scaling.
+            sliced = sliced.where(sliced >= 1)
+            clim = clim_data_quality
+            cmap = "Reds"
+            logz = True
         else:
             try:
                 sliced = da.sel(year=year_or_stat, generation=generation)
@@ -209,20 +237,33 @@ def create_fflies_dashboard(
         # Ensure sliced is a DataArray of days to completion
         days_to_completion = sliced
         # Calculate completion date as a DataArray of strings (ISO format)
-        completion_date = xr.apply_ufunc(
-            lambda days: (det_date + pd.to_timedelta(days, unit="D")).strftime(
-                "%Y-%m-%d"
-            ),
-            days_to_completion,
-            vectorize=True,
-            dask="parallelized",
-            output_dtypes=[str],
-        )
+        # Handle NaN values by returning "N/A" instead of trying to format NaT
+        def days_to_date(days):
+            if np.isnan(days):
+                return "N/A"
+            return (det_date + pd.to_timedelta(days, unit="D")).strftime("%Y-%m-%d")
+
+        if year_or_stat == "data_quality":
+            completion_date = xr.apply_ufunc(
+                lambda _: "N/A",
+                days_to_completion,
+                vectorize=True,
+                dask="parallelized",
+                output_dtypes=[str],
+            )
+        else:
+            completion_date = xr.apply_ufunc(
+                days_to_date,
+                days_to_completion,
+                vectorize=True,
+                dask="parallelized",
+                output_dtypes=[str],
+            )
         # Compose a new DataArray with both days and completion date as variables
         # We'll use a tuple for vdims, but holoviews expects a Dataset for multiple vdims
         ds = xr.Dataset(
             {
-                "Days to Completion": days_to_completion,
+                "Data Layer Value": days_to_completion,
                 "Completion Date": completion_date,
             }
         )
@@ -230,13 +271,14 @@ def create_fflies_dashboard(
         img = gv.Image(
             ds,
             kdims=["longitude", "latitude"],
-            vdims=["Days to Completion", "Completion Date"],
+            vdims=["Data Layer Value", "Completion Date"],
         ).opts(
             cmap=cmap,
             alpha=alpha,
             colorbar=True,
             tools=["hover", "tap"],  # Ensure tap tool is present
             clim=clim,
+            logz=logz,
             bgcolor="#E7E7D6",
             xaxis=None,
             yaxis=None,
@@ -318,6 +360,11 @@ def create_fflies_dashboard(
         "range": (
             "The range (max-min) of completion dates across all sub-simulations. "
             "Use to identify areas with high inter-annual variation in completion dates."
+        ),
+        "data_quality": (
+            "Shows mean number of day-level QC failures (missing days plus tmin>tmax days) "
+            "across sub-simulated years at each cell. Zero-fail cells are hidden and colors "
+            "for 1+ failures are log-scaled."
         ),
         # Add a default for years (simXXXX)
         "default": ("Shows the completion dates for the selected sub-simulation year."),

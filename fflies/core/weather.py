@@ -1,7 +1,7 @@
 import pickle
 import xarray as xr
 from pathlib import Path
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional, List
 import datetime
 
@@ -32,10 +32,12 @@ data = xr.open_mfdataset(gridmet_URL)
 class WeatherDataHandler:
 
     cache_dir: Optional[Path] = None
-    gridmet_urls = [
-        "http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_tmmx_1979_CurrentYear_CONUS.nc#fillmismatch",  # add #fillmismatch to URL if broken
-        "http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_tmmn_1979_CurrentYear_CONUS.nc#fillmismatch",
-    ]
+    gridmet_urls: list[str] = field(
+        default_factory=lambda: [
+            "http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_tmmx_1979_CurrentYear_CONUS.nc#fillmismatch",  # add #fillmismatch to URL if broken
+            "http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_tmmn_1979_CurrentYear_CONUS.nc#fillmismatch",
+        ]
+    )
     bounding_box: Optional[tuple] = None  # Store bounding box as a class variable
 
     def __post_init__(self):
@@ -127,7 +129,12 @@ class WeatherDataHandler:
         """Business logic like unit conversion, quality checks"""
 
     def fetch_data_gridmet(
-        self, latitude, longitude, time_range=None, use_buffer=False
+        self,
+        latitude,
+        longitude,
+        time_range=None,
+        use_buffer=False,
+        buffer_deg=None,
     ):
         """
         Fetch a subset of GridMET data for a given lat/lon point (with optional buffer and time range).
@@ -141,10 +148,11 @@ class WeatherDataHandler:
         ds = self.gridmet_data
 
         # Define bounding box
-        if use_buffer:
-            buffer_deg = 0.4  # Default buffer in degrees (~44km)
-        else:
-            buffer_deg = 0.1
+        if buffer_deg is None:
+            if use_buffer:
+                buffer_deg = 0.4  # Default buffer in degrees (~44km)
+            else:
+                buffer_deg = 0.1
         # Ensure slice direction matches coordinate order in dataset
         lat_min, lat_max = latitude - buffer_deg, latitude + buffer_deg
         lon_min, lon_max = longitude - buffer_deg, longitude + buffer_deg

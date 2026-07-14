@@ -1,0 +1,76 @@
+
+
+
+[   {
+    "user_id": "user_002",
+    "unique_id": "obliqua_Mission_lab",
+   
+    "latitude": 26.223984,
+    "longitude": -98.361970,
+   
+    "detection_date": "2026-01-12",
+    "species": "a_obliqua_lab",
+    "generations": 3
+},
+ 
+    {
+        "user_id": "user_002",
+        "unique_id": "obliqua_Mission_field",
+    
+        "latitude": 26.223984,
+        "longitude": -98.361970,
+    
+        "detection_date": "2026-01-12",
+        "species": "a_obliqua_field_mean",
+        "generations": 3
+    },
+    
+    {
+        "user_id": "user_002",
+        "unique_id": "obliqua_Mission_field_late",
+    
+        "latitude": 26.223984,
+        "longitude": -98.361970,
+    
+        "detection_date": "2026-01-12",
+        "species": "a_obliqua_field_late",
+        "generations": 3
+    },
+
+ {
+    "user_id": "user_002",
+    "unique_id": "obliqua_Palmview_lab",
+   
+    "latitude": 26.224075,
+    "longitude": -98.363378,
+   
+    "detection_date": "2025-12-23",
+    "species": "a_obliqua_lab",
+    "generations": 3
+},
+    
+    {
+        "user_id": "user_002",
+        "unique_id": "obliqua_Palmview_field",
+    
+        "latitude": 26.224075,
+        "longitude": -98.363378,
+    
+        "detection_date": "2025-12-23",
+        "species": "a_obliqua_field_mean",
+        "generations": 3
+    },
+    
+    {
+        "user_id": "user_002",
+        "unique_id": "obliqua_Palmview_field_late",
+    
+        "latitude": 26.224075,
+        "longitude": -98.363378,
+    
+        "detection_date": "2025-12-23",
+        "species": "a_obliqua_field_late",
+        "generations": 3
+    }
+]
+    

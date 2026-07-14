@@ -4,7 +4,24 @@ input:
 
 
 weather:
+
+  #data source - GRIDMET 
+  source: "gridmet"
+  #History years are the number of years of historical data to use for the model.
+  history_years: 20
+  #recent_buffer_deg is the number of degrees to buffer the recent data (in degrees Celsius).
+  #dashboard_buffer_deg is the number of degrees to buffer the data for the dashboard (in degrees Celsius).
+  #historical_buffer_deg is the number of degrees to buffer the historical data (
+  recent_buffer_deg: 0.3
+  dashboard_buffer_deg: 0.5
+  historical_buffer_deg: 0.3
+  gridmet_urls:
+    - "http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_tmmx_1979_CurrentYear_CONUS.nc#fillmismatch"
+    - "http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_tmmn_1979_CurrentYear_CONUS.nc#fillmismatch"
   cache_dir: "./cache/pred_cache.pkl"
+
+fly_models:
+  path: "./config/fly_models.json"
 
 # config/settings.yaml
 output:

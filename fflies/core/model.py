@@ -44,6 +44,11 @@ def fflies_core(
                     stage["UTT"],
                 )
 
+                # Missing temperatures should not poison the entire accumulation.
+                # They are tracked separately in the QC layer and count as 0 DD here.
+                if np.isnan(dd):
+                    dd = 0.0
+
                 stage_dd += dd
                 stage_accumulator += dd
                 days_in_stage += 1
@@ -72,6 +77,7 @@ def fflies_spatial_wrapper(
     start_day: int,
     stages: List[Dict],
     generations: int = 3,
+    qc_fail_mask_xr: xr.DataArray | None = None,
 ) -> xr.Dataset:
     """Simplified wrapper matching core outputs"""
     results = xr.apply_ufunc(
@@ -88,7 +94,7 @@ def fflies_spatial_wrapper(
         dask_gufunc_kwargs={"output_sizes": {"generation": generations}},
     )
 
-    return xr.Dataset(
+    ds = xr.Dataset(
         {
             "days_to_completion": results.where(
                 results >= 0
@@ -101,6 +107,11 @@ def fflies_spatial_wrapper(
         },
     )
 
+    if qc_fail_mask_xr is not None:
+        ds["data_quality_fail_days"] = qc_fail_mask_xr.sum(dim="t")
+
+    return ds
+
 
 def fflies_prediction_wrapper(
     current_data: xr.Dataset,  # tmin/tmax (time, lat, lon)
@@ -110,6 +121,8 @@ def fflies_prediction_wrapper(
     generations: int = 3,
     start_year: int = 2021,
     end_year: int = 2023,
+    current_qc_fail_mask: xr.DataArray | None = None,
+    historical_qc_fail_mask: xr.DataArray | None = None,
 ) -> xr.Dataset:
     """
     Predicts development using:
@@ -120,6 +133,11 @@ def fflies_prediction_wrapper(
     - total_days: Days from start to completion
     - completed: Boolean whether full development occurred
     """
+    # Normalize coordinate ordering to avoid xarray assignment conflicts.
+    # We keep a canonical ascending order for spatial dimensions.
+    current_data = current_data.sortby("latitude").sortby("longitude")
+    historical_data = historical_data.sortby("latitude").sortby("longitude").sortby("t")
+
     years = np.arange(start_year, end_year + 1)
     n_years = len(years)
     if "latitude" not in current_data.dims or "longitude" not in current_data.dims:
@@ -149,6 +167,10 @@ def fflies_prediction_wrapper(
                 ("year", "generation", "latitude", "longitude"),
                 np.full(shape, False, dtype=bool),
             ),
+            "data_quality_fail_days": (
+                ("year", "latitude", "longitude"),
+                np.zeros((n_years, len(current_data.latitude), len(current_data.longitude)), dtype=np.int16),
+            ),
         },
         coords={
             "year": years,
@@ -160,6 +182,17 @@ def fflies_prediction_wrapper(
 
     detection_day_of_year = detection_date.dayofyear
     days_recent_data = len(current_data.t)
+
+    if current_qc_fail_mask is None:
+        current_qc_fail_mask = xr.zeros_like(current_data["tmin"], dtype=np.int16)
+    else:
+        current_qc_fail_mask = current_qc_fail_mask.sortby("latitude").sortby("longitude")
+
+    if historical_qc_fail_mask is None:
+        historical_qc_fail_mask = xr.zeros_like(historical_data["tmin"], dtype=np.int16)
+    else:
+        historical_qc_fail_mask = historical_qc_fail_mask.sortby("latitude").sortby("longitude").sortby("t")
+    
     for year in range(start_year, end_year + 1):
 
         historical_date = pd.Timestamp(
@@ -172,9 +205,13 @@ def fflies_prediction_wrapper(
         historical_tmax = historical_data["tmax"].isel(
             t=slice(historical_index + days_recent_data, None)
         )
+        historical_qc = historical_qc_fail_mask.isel(
+            t=slice(historical_index + days_recent_data, None)
+        )
 
         model_run_tmax = xr.concat([current_data["tmax"], historical_tmax], dim="t")
         model_run_tmin = xr.concat([current_data["tmin"], historical_tmin], dim="t")
+        model_run_qc = xr.concat([current_qc_fail_mask, historical_qc], dim="t")
 
         result = fflies_spatial_wrapper(
             model_run_tmin,
@@ -182,6 +219,12 @@ def fflies_prediction_wrapper(
             start_day=0,
             stages=stages,
             generations=generations,
+            qc_fail_mask_xr=model_run_qc,
+        )
+        # Ensure exact spatial coordinate alignment with the preallocated output grid.
+        result = result.reindex(
+            latitude=outputs.latitude,
+            longitude=outputs.longitude,
         )
         outputs["days_to_completion"].loc[dict(year=year)] = result[
             "days_to_completion"
@@ -190,6 +233,9 @@ def fflies_prediction_wrapper(
             "incomplete_development"
         ]
         outputs["missing_data"].loc[dict(year=year)] = result["missing_data"]
+        outputs["data_quality_fail_days"].loc[dict(year=year)] = result[
+            "data_quality_fail_days"
+        ]
 
     return outputs
 

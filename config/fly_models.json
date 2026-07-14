@@ -3,7 +3,7 @@
     "stages": [
       {
         "name": "default",
-        "UTT": 45,
+        "UTT": 100,
         "LTT": 9.4,
         "dd_threshold": 754
       }
@@ -115,6 +115,277 @@
         "UTT": 45,
         "LTT": 8,
         "dd_threshold": 150
+      }
+    ]
+  },
+
+  "a_serpentina_peach": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 30,
+        "LTT": 8.8,
+        "dd_threshold": 677,
+        "comment": "Anastrepha serpentina"
+      }
+    ]
+  },
+  "a_serpentina_combined": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 30,
+        "LTT": 9.6,
+        "dd_threshold": 593,
+        "comment": "Anastrepha serpentina"
+      }
+    ]
+  },
+  "a_serpentina_zapote": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 30,
+        "LTT": 10.3,
+        "dd_threshold": 529,
+        "comment": "Anastrepha serpentina"
+      }
+    ]
+  },
+  "a_serpentina_zapote_celedonio": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 30,
+        "LTT": 10.3,
+        "dd_threshold": 416,
+        "comment": "Anastrepha serpentina"
+      }
+    ]
+  },
+   "a_serpentina_field_mean": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 30,
+        "LTT": 9.6,
+        "dd_threshold": 719,
+        "comment": "Anastrepha serpentina field"
+      }
+    ]
+  },
+   "a_serpentina_field_late": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 30,
+        "LTT": 9.6,
+        "dd_threshold": 752,
+        "comment": "Anastrepha serpentina field"
+      }
+    ]
+  },
+   "a_obliqua_lab": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 99,
+        "LTT": 9.45,
+        "dd_threshold": 716,
+        "comment": "Anastrepha obliqua lab"
+      }
+    ]
+  },  
+   "a_obliqua_field_mean": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 99,
+        "LTT": 9.45,
+        "dd_threshold": 509,
+        "comment": "Anastrepha obliqua field"
+      }
+    ]
+  },
+  "a_obliqua_field_late": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 99,
+        "LTT": 9.45,
+        "dd_threshold": 552,
+        "comment": "Anastrepha obliqua fieldlate"
+      }
+    ]
+  },
+  "a_serpentina_peach_nu": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 99,
+        "LTT": 8.8,
+        "dd_threshold": 677,
+        "comment": "Anastrepha serpentina"
+      }
+    ]
+  },
+  "a_serpentina_combined_nu": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 99,
+        "LTT": 9.6,
+        "dd_threshold": 593,
+        "comment": "Anastrepha serpentina"
+      }
+    ]
+  },
+  "a_serpentina_zapote_nu": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 99,
+        "LTT": 10.3,
+        "dd_threshold": 529,
+        "comment": "Anastrepha serpentina"
+      }
+    ]
+  },
+  "a_serpentina_zapote_celedonio_nu": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 99,
+        "LTT": 10.3,
+        "dd_threshold": 416,
+        "comment": "Anastrepha serpentina"
+      }
+    ]
+  },
+   "a_serpentina_field_mean_nu": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 99,
+        "LTT": 9.6,
+        "dd_threshold": 719,
+        "comment": "Anastrepha serpentina field"
+      }
+    ]
+  },
+   "a_serpentina_field_late_nu": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 99,
+        "LTT": 9.6,
+        "dd_threshold": 752,
+        "comment": "Anastrepha serpentina field"
+      }
+    ]
+  },
+
+   "a_serpentina_UC_peach": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 30,
+        "LTT": 8.8,
+        "dd_threshold": 684,
+        "comment": "Anastrepha serpentina UC peach"
+      }
+    ]
+  }
+  ,
+
+   "a_serpentina_UC_zapote": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 30,
+        "LTT": 10.2,
+        "dd_threshold": 534,
+        "comment": "Anastrepha serpentina UC zapote"
+      }
+    ]
+  },
+    "a_serpentina_combined_nu_maturation": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 99,
+        "LTT": 9.6,
+        "dd_threshold": 777,
+        "comment": "Anastrepha serpentina"
+      }
+    ]
+  },
+  "a_serpentina_combined_celedonio": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 99,
+        "LTT": 9.6,
+        "dd_threshold": 590,
+        "comment": "Anastrepha serpentina"
+      }
+    ]
+  },
+  "a_serpentina_combined_celedonio_maturation": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 99,
+        "LTT": 9.6,
+        "dd_threshold": 688.9,
+        "comment": "Anastrepha serpentina"
+      }
+    ]
+  },
+  "a_serpentina_field_mean_maturation": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 99,
+        "LTT": 9.6,
+        "dd_threshold": 903,
+        "comment": "Anastrepha serpentina"
+      }
+    ]
+  },
+  
+    "a_serpentina_favored": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 99,
+        "LTT": 9.6,
+        "dd_threshold": 754,
+        "comment": "Anastrepha serpentina"
+      }
+    ]
+  },
+
+
+  "obliqua_fu": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 36,
+        "LTT": 10,
+        "dd_threshold": 642,
+        "comment": "Anastrepha obliqua "
+      }
+    ]
+  },
+  "obliqua_TellesRomero": {
+    "stages": [
+      {
+        "name": "default",
+        "UTT": 99,
+        "LTT": 9.45,
+        "dd_threshold": 716.6,
+        "comment": "Anastrepha obliqua "
       }
     ]
   }

@@ -1,0 +1,304 @@
+
+
+
+[   {
+    "user_id": "user_002",
+    "unique_id": "serpentina_riohondo_peach",
+   
+    "latitude": 26.246420,
+    "longitude": -97.502630,
+   
+    "detection_date": "2026-01-27",
+    "species": "a_serpentina_peach_nu",
+    "generations": 3
+},
+ {
+    "user_id": "user_002",
+    "unique_id": "serpentina_riohondo_combined",
+   
+    "latitude": 26.246420,
+    "longitude": -97.502630,
+   
+    "detection_date": "2026-01-27",
+    "species": "a_serpentina_combined_nu",
+    "generations": 3
+},
+ {
+    "user_id": "user_002",
+    "unique_id": "serpentina_riohondo_zapote",
+   
+    "latitude": 26.246420,
+    "longitude": -97.502630,
+   
+    "detection_date": "2026-01-27",
+    "species": "a_serpentina_zapote_nu",
+    "generations": 3
+},
+ {
+    "user_id": "user_002",
+    "unique_id": "serpentina_riohondo_combined_celedonio",
+   
+    "latitude": 26.246420,
+    "longitude": -97.502630,
+   
+    "detection_date": "2026-01-27",
+    "species": "a_serpentina_combined_celedonio",
+    "generations": 3
+},
+{
+    "user_id": "user_002",
+    "unique_id": "serpentina_riohondo_combined_celedonio_maturation",
+   
+    "latitude": 26.246420,
+    "longitude": -97.502630,
+   
+    "detection_date": "2026-01-27",
+    "species": "a_serpentina_combined_celedonio_maturation",
+    "generations": 3
+},
+ {
+    "user_id": "user_002",
+    "unique_id": "serpentina_riohondo_field_mean",
+   
+    "latitude": 26.246420,
+    "longitude": -97.502630,
+   
+    "detection_date": "2026-01-27",
+    "species": "a_serpentina_field_mean_nu",
+    "generations": 3
+},
+ {
+    "user_id": "user_002",
+    "unique_id": "serpentina_riohondo_field_late",
+   
+    "latitude": 26.246420,
+    "longitude": -97.502630,
+   
+    "detection_date": "2026-01-27",
+    "species": "a_serpentina_field_late_nu",
+    "generations": 3
+},
+ {
+    "user_id": "user_002",
+    "unique_id": "serpentina_riohondo_field_mean_maturation",
+   
+    "latitude": 26.246420,
+    "longitude": -97.502630,
+   
+    "detection_date": "2026-01-27",
+    "species": "a_serpentina_field_mean_maturation",
+    "generations": 3
+},
+ {
+    "user_id": "user_002",
+    "unique_id": "riohondo_serpentina_UC_peach",
+   
+    "latitude": 26.246420,
+    "longitude": -97.502630,
+   
+    "detection_date": "2026-01-27",
+    "species": "a_serpentina_UC_peach",
+    "generations": 3
+},
+ {
+    "user_id": "user_002",
+    "unique_id": "riohondo_serpentina_UC_zapote",
+   
+    "latitude": 26.246420,
+    "longitude": -97.502630,
+   
+    "detection_date": "2026-01-27",
+    "species": "a_serpentina_UC_zapote",
+    "generations": 3
+},
+ {
+    "user_id": "user_002",
+    "unique_id": "riohondo_mexfly",
+   
+    "latitude": 26.246420,
+    "longitude": -97.502630,
+   
+    "detection_date": "2026-01-27",
+    "species": "mexfly",
+    "generations": 3
+},
+{
+    "user_id": "user_002",
+    "unique_id": "serpentina_riohondo_combined_noupper_maturation",
+   
+    "latitude": 26.246420,
+    "longitude": -97.502630,
+   
+    "detection_date": "2026-01-27",
+    "species": "a_serpentina_combined_nu_maturation",
+    "generations": 3
+},
+
+ {
+    "user_id": "user_002",
+    "unique_id": "serpentina_alamo_peach",
+   
+    "latitude": 26.151408,
+    "longitude": -98.128315,
+   
+    "detection_date": "2026-02-27",
+    "species": "a_serpentina_peach_nu",
+    "generations": 3
+},
+    {
+        "user_id": "user_002",
+        "unique_id": "serpentina_alamo_combined",
+    
+        "latitude": 26.151408,
+        "longitude": -98.128315,
+    
+        "detection_date": "2026-02-27",
+        "species": "a_serpentina_combined_nu",
+        "generations": 3
+    },
+    {
+        "user_id": "user_002",
+        "unique_id": "serpentina_alamo_zapote",
+    
+        "latitude": 26.151408,
+        "longitude": -98.128315,
+    
+        "detection_date": "2026-02-27",
+        "species": "a_serpentina_zapote_nu",
+        "generations": 3
+    },
+    {
+        "user_id": "user_002",
+        "unique_id": "serpentina_alamo_zapote_celedonio",
+    
+        "latitude": 26.151408,
+        "longitude": -98.128315,
+    
+        "detection_date": "2026-02-27",
+        "species": "a_serpentina_zapote_celedonio_nu",
+        "generations": 3
+    },
+    {
+        "user_id": "user_002",
+        "unique_id": "serpentina_alamo_field_mean",
+    
+        "latitude": 26.151408,
+        "longitude": -98.128315,
+    
+        "detection_date": "2026-02-27",
+        "species": "a_serpentina_field_mean_nu",
+        "generations": 3
+    },
+    {
+        "user_id": "user_002",
+        "unique_id": "serpentina_alamo_field_late",
+    
+        "latitude": 26.151408,
+        "longitude": -98.128315,
+    
+        "detection_date": "2026-02-27",
+        "species": "a_serpentina_field_late_nu",
+        "generations": 3
+    },
+    {
+        "user_id": "user_002",
+        "unique_id": "alamo_serpentina_UC_peach",
+    
+        "latitude": 26.151408,
+        "longitude": -98.128315,
+    
+        "detection_date": "2026-01-27",
+        "species": "a_serpentina_UC_peach",
+        "generations": 3
+    },
+    {
+        "user_id": "user_002",
+        "unique_id": "alamo_serpentina_UC_zapote",
+    
+        "latitude": 26.151408,
+        "longitude": -98.128315,
+    
+        "detection_date": "2026-01-27",
+        "species": "a_serpentina_UC_zapote",
+        "generations": 3},
+
+{
+        "user_id": "user_002",
+        "unique_id": "serpentina_alamo_combined_celedonio",
+    
+        "latitude": 26.151408,
+        "longitude": -98.128315,
+    
+        "detection_date": "2026-02-27",
+        "species": "a_serpentina_combined_celedonio",
+        "generations": 3
+    },
+    {
+        "user_id": "user_002",
+        "unique_id": "serpentina_alamo_combined_celedonio_maturation",
+    
+        "latitude": 26.151408,
+        "longitude": -98.128315,
+    
+        "detection_date": "2026-02-27",
+        "species": "a_serpentina_combined_celedonio_maturation",
+        "generations": 3
+    },  
+    {
+        "user_id": "user_002",
+        "unique_id": "serpentina_alamo_field_mean_maturation",
+    
+        "latitude": 26.151408,
+        "longitude": -98.128315,
+    
+        "detection_date": "2026-02-27",
+        "species": "a_serpentina_field_mean_maturation",
+        "generations": 3},
+        {
+        "user_id": "user_002",
+        "unique_id": "serpentina_alamo_combined_maturation_nu",
+    
+        "latitude": 26.151408,
+        "longitude": -98.128315,
+    
+        "detection_date": "2026-02-27",
+        "species": "a_serpentina_combined_nu_maturation",
+        "generations": 3
+    },
+    
+    {
+        "user_id": "user_002",
+        "unique_id": "mexfly_alamo",
+    
+        "latitude": 26.151408,
+        "longitude": -98.128315,
+    
+        "detection_date": "2026-02-27",
+        "species": "mexfly",
+        "generations": 3
+    },
+    {
+        "user_id": "user_002",
+        "unique_id": "alamo_serpentina_UC_peach",
+    
+        "latitude": 26.151408,
+        "longitude": -98.128315,
+    
+        "detection_date": "2026-02-27",
+        "species": "a_serpentina_UC_peach",
+        "generations": 3
+    },
+    {
+        "user_id": "user_002",
+        "unique_id": "alamo_serpentina_UC_zapote",
+    
+        "latitude": 26.151408,
+        "longitude": -98.128315,
+    
+        "detection_date": "2026-02-27",
+        "species": "a_serpentina_UC_zapote",
+        "generations": 3}
+    
+
+
+]

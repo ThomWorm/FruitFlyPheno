@@ -1,0 +1,28 @@
+
+
+
+[   {
+    "user_id": "user_002",
+    "unique_id": "serpentina_riohondo_peach",
+   
+    "latitude": 26.246420,
+    "longitude": -97.502630,
+   
+    "detection_date": "2026-01-27",
+    "species": "a_serpentina_field_late",
+    "generations": 3
+},
+ 
+ {
+    "user_id": "user_002",
+    "unique_id": "serpentina_alamo_peach",
+   
+    "latitude": 26.151408,
+    "longitude": -98.128315,
+   
+    "detection_date": "2026-02-27",
+    "species": "a_serpentina_field_late",
+    "generations": 3
+}
+]
+    
